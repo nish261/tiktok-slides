@@ -6,7 +6,8 @@ from typing import Dict, List, Literal, Optional, Set, Union
 
 from config.logging import logger
 from content_manager.metadata.metadata import Metadata
-from content_manager.settings.settings_constants import VALID_TEXT_TYPES
+from content_manager.settings.settings_constants import VALID_TEXT_TYPES, Path as _PathAlias
+from content_manager.settings.settings_constants import DEFAULT_TEMPLATE, TEMPLATE_PATH, BASE_DIR
 from content_manager.settings.settings_validator import SettingsValidator
 
 
@@ -115,11 +116,12 @@ class Settings:
             test_mode: If True, use test directories instead of real ones
         """
         if test_mode:
-            self.templates_dir = Path("assets/test_templates")
-            self.fonts_dir = Path("assets/test_fonts")
+            self.templates_dir = (BASE_DIR / "assets" / "test_templates")
+            self.fonts_dir = (BASE_DIR / "assets" / "test_fonts")
         else:
-            self.templates_dir = Path("assets/templates")
-            self.fonts_dir = Path("assets/fonts")
+            # Resolve relative to the package root to avoid CWD issues
+            self.templates_dir = (BASE_DIR / "assets" / "templates")
+            self.fonts_dir = (BASE_DIR / "assets" / "fonts")
 
         self.settings_validator = SettingsValidator()
         self.metadata = None

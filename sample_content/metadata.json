@@ -1,0 +1,240 @@
+{
+  "content_types": [
+    "cta",
+    "hook",
+    "story"
+  ],
+  "products": {
+    "hook": [
+      {
+        "name": "all",
+        "prevent_duplicates": false,
+        "current_count": 5,
+        "min_occurrences": 1
+      }
+    ],
+    "story": [
+      {
+        "name": "all",
+        "prevent_duplicates": false,
+        "current_count": 0,
+        "min_occurrences": 1
+      }
+    ],
+    "cta": [
+      {
+        "name": "all",
+        "prevent_duplicates": false,
+        "current_count": 5,
+        "min_occurrences": 1
+      }
+    ]
+  },
+  "structure": {
+    "cta": {
+      "path": "/Users/nishchalasri/Desktop/tiktok_slides/tiktok_slides/sample_content/cta",
+      "images": [
+        "548a49d0c468f81b94626f897bd774f3.jpg",
+        "96e9b4b6ddfe77a0d5cad6ef58b82724.jpg",
+        "9e6ad643d56bbcef0c322dd8399e891c.jpg",
+        "b8dcdc75168ba01568da656a1382b91a.jpg",
+        "e7bd7c9f0228fe03bfd0436668c8b57e.jpg"
+      ]
+    },
+    "hook": {
+      "path": "/Users/nishchalasri/Desktop/tiktok_slides/tiktok_slides/sample_content/hook",
+      "images": [
+        "05c3d6c5bdd5ccb357881835e5abb646.jpg",
+        "0f239da599df5760da2e766c61505dc571c38b16e6e557752b85dd0ea4b4dd89.png",
+        "105678fb25e371fa1e62b2ad6595e183.jpg",
+        "2b0c4803b2e8427f594c275067981d6a.jpg",
+        "2c688fba25b4c235a9d93f81bb5d3251.jpg",
+        "742da066261d4fd7ae41dc618d72f618.jpg",
+        "d880e3c94a27fd66bf53c76c17a765a9.jpg"
+      ]
+    },
+    "story": {
+      "path": "/Users/nishchalasri/Desktop/tiktok_slides/tiktok_slides/sample_content/story",
+      "images": []
+    }
+  },
+  "images": {
+    "05c3d6c5bdd5ccb357881835e5abb646.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
+      },
+      "product": "all",
+      "settings_source": "custom",
+      "settings": {
+        "text_settings": {
+          "highlight": {
+            "font_size": 50,
+            "font": "assets.fonts.tiktokfont.ttf",
+            "style_type": "corner_radius",
+            "style_value": 20,
+            "colors": [
+              {
+                "text": "#000000",
+                "background": "#FFFFFF"
+              }
+            ],
+            "position": {
+              "vertical": [
+                0.7,
+                0.8
+              ],
+              "horizontal": [
+                0.45,
+                0.55
+              ],
+              "vertical_jitter": 0.01,
+              "horizontal_jitter": 0.02
+            },
+            "margins": {
+              "top": 0.05,
+              "bottom": 0.05,
+              "left": 0.05,
+              "right": 0.05
+            }
+          }
+        },
+        "base_settings": {
+          "default_text_type": "highlight"
+        }
+      },
+      "settings_level": "default"
+    },
+    "0f239da599df5760da2e766c61505dc571c38b16e6e557752b85dd0ea4b4dd89.png": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 398,
+        "height": 639
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "settings_level": "default"
+    },
+    "105678fb25e371fa1e62b2ad6595e183.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 1030,
+        "height": 1372
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "settings_level": "default"
+    },
+    "2b0c4803b2e8427f594c275067981d6a.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "settings_level": "default"
+    },
+    "2c688fba25b4c235a9d93f81bb5d3251.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 736,
+        "height": 981
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "settings_level": "default"
+    },
+    "548a49d0c468f81b94626f897bd774f3.jpg": {
+      "content_type": "cta",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    },
+    "742da066261d4fd7ae41dc618d72f618.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 720,
+        "height": 960
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "settings_level": "default"
+    },
+    "96e9b4b6ddfe77a0d5cad6ef58b82724.jpg": {
+      "content_type": "cta",
+      "dimensions": {
+        "width": 736,
+        "height": 981
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    },
+    "9e6ad643d56bbcef0c322dd8399e891c.jpg": {
+      "content_type": "cta",
+      "dimensions": {
+        "width": 736,
+        "height": 981
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    },
+    "b8dcdc75168ba01568da656a1382b91a.jpg": {
+      "content_type": "cta",
+      "dimensions": {
+        "width": 555,
+        "height": 1200
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    },
+    "d880e3c94a27fd66bf53c76c17a765a9.jpg": {
+      "content_type": "hook",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    },
+    "e7bd7c9f0228fe03bfd0436668c8b57e.jpg": {
+      "content_type": "cta",
+      "dimensions": {
+        "width": 900,
+        "height": 1200
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null
+    }
+  },
+  "untagged": [],
+  "settings": {
+    "cta": {
+      "content": null,
+      "[all]": null
+    },
+    "hook": {
+      "content": null,
+      "[all]": null
+    },
+    "story": {
+      "content": null,
+      "[all]": null
+    }
+  }
+}

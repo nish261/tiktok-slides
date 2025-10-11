@@ -1,6 +1,6 @@
 from PIL import Image
 from typing import Dict, Any
-from content_manager.settings.settings_constants import VALID_TEXT_TYPES
+from content_manager.settings.settings_constants import VALID_TEXT_TYPES, BASE_DIR
 from text.highlight_text import draw_highlight_image
 from text.plain_text import draw_plain_image  # We'll create this later
 import random
@@ -86,13 +86,16 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     }
     
     # Basic settings that apply to both text types
+    # Resolve absolute font path inside the package (avoids CWD issues)
+    resolved_font_path = str((BASE_DIR / text_settings["font"].replace("assets.fonts.", "assets/fonts/")).resolve())
+
     common_settings = {
         "image": image,
         "width": width, 
         "height": height,
         "text": text,
         "font_size": text_settings["font_size"],
-        "font_path": text_settings["font"].replace("assets.fonts.", "assets/fonts/"),
+        "font_path": resolved_font_path,
         "max_width": max_width,
         "width_center_position": width_center_position,
         "height_center_position": height_center_position,

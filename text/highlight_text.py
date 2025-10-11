@@ -1,4 +1,16 @@
 from PIL import Image, ImageDraw, ImageFont
+try:
+    # Emoji rendering helper; falls back to Pillow if unavailable
+    from pilmoji import Pilmoji  # type: ignore
+    from pilmoji.source import GoogleEmojiSource  # type: ignore
+    _HAS_PILMOJI = True
+except Exception:  # pragma: no cover - optional dependency
+    Pilmoji = None  # type: ignore
+    GoogleEmojiSource = None  # type: ignore
+    _HAS_PILMOJI = False
+from .emoji_utils import parse_text_with_emojis, load_fonts
+
+
 
 
 def draw_rounded_rectangle(draw, xy, radius, fill):
@@ -18,6 +30,7 @@ def draw_wrapped_text(
     draw: ImageDraw.Draw,
     text: str,
     font: ImageFont.FreeTypeFont,
+    emoji_font: ImageFont.FreeTypeFont,
     max_width: int,
     position: tuple[int, int],
     width: int,
@@ -25,6 +38,7 @@ def draw_wrapped_text(
     background_color: str,
     highlight_padding: int = 2,
     corner_radius: int = 15,
+    base_image: Image.Image | None = None,
 ) -> None:
     """Draw wrapped text with highlights, treating each \n as a line break"""
     
@@ -64,8 +78,21 @@ def draw_wrapped_text(
             y += font.size // 2  # Add small space for empty line
             continue
             
+        # Calculate width using PNG emojis and regular text
+        line_width = 0
+        segments = parse_text_with_emojis(line)
+        for segment, is_emoji in segments:
+            if is_emoji:
+                # Use emoji size for width calculation
+                # Use font size for emoji width calculation
+                emoji_size = font.size
+                line_width += emoji_size
+            else:
+                bbox = font.getbbox(segment)
+                line_width += bbox[2] - bbox[0]
+        
+        # Get line height from text font
         bbox = font.getbbox(line)
-        line_width = bbox[2] - bbox[0]
         line_height = bbox[3] - bbox[1]
 
         # Center horizontally
@@ -91,9 +118,26 @@ def draw_wrapped_text(
     for line_data in reversed(line_info):
         draw_rounded_rectangle(draw, line_data["highlight_coords"], corner_radius, fill=background_color)
 
-    # Draw text top to bottom
+    # Draw text top to bottom using mixed font approach
     for line_data in line_info:
-        draw.text((line_data["x"], line_data["y"]), line_data["text"], font=font, fill=text_color)
+        segments = parse_text_with_emojis(line_data["text"])
+        current_x = line_data["x"]
+        
+        for segment, is_emoji in segments:
+            if is_emoji:
+                # Use emoji font for emoji segments
+                segment_font = emoji_font
+            else:
+                # Use text font for regular text
+                segment_font = font
+            
+            # Draw text segment
+            draw.text((current_x, line_data["y"]), segment, font=segment_font, fill=text_color)
+            
+            # Calculate width of segment and advance position
+            bbox = draw.textbbox((0, 0), segment, font=segment_font)
+            segment_width = bbox[2] - bbox[0]
+            current_x += segment_width
 
 
 def draw_highlight_image(
@@ -136,7 +180,8 @@ def draw_highlight_image(
     text_layer = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(text_layer)
     
-    font = ImageFont.truetype(font_path, font_size)
+    # Load both text and emoji fonts
+    text_font, emoji_font = load_fonts(font_path, font_size)
     
     # Calculate actual pixel positions
     x = int(width * width_center_position)
@@ -147,14 +192,16 @@ def draw_highlight_image(
     draw_wrapped_text(
         draw=draw,
         text=text,
-        font=font,
+        font=text_font,
+        emoji_font=emoji_font,
         max_width=max_width,
         position=position,
         width=width,
         text_color=text_color,
         background_color=background_color,
         highlight_padding=highlight_padding,
-        corner_radius=corner_radius
+        corner_radius=corner_radius,
+        base_image=text_layer,
     )
     
     result = Image.alpha_composite(image.convert("RGBA"), text_layer)

@@ -1,4 +1,4 @@
-import imghdr
+from PIL import Image  # type: ignore
 import os
 from collections import defaultdict
 from pathlib import Path
@@ -123,7 +123,9 @@ class PathValidator(StrictValidator):
             return False
 
     def _check_unexpected_folders(self, base_path: Path) -> bool:
-        """Check ONLY for unexpected folders in base path"""
+        """Check ONLY for unexpected folders in base path.
+        In non-strict mode, unexpected folders become warnings so the UI can launch.
+        """
         try:
             allowed = {name.lower() for name in self.content_types} | {"metadata"}
 
@@ -138,10 +140,14 @@ class PathValidator(StrictValidator):
                         logger.warning(f"Found a preview folder, deleting it: {item}")
                         shutil.rmtree(item)
                         continue
-                        
+
                     msg = f"Unexpected folder(s) found: {item.name}"
-                    self.add_error(msg)
-                    raise ValueError(msg)
+                    if self.strict:
+                        self.add_error(msg)
+                        raise ValueError(msg)
+                    else:
+                        self.add_warning(msg)
+                        continue
 
             return True
 
@@ -201,8 +207,10 @@ class PathValidator(StrictValidator):
             if ext not in [".png", ".jpg", ".jpeg"]:
                 return False
 
-            # Additional check using imghdr for content validation
-            return imghdr.what(file_path) is not None
+            # Validate image content using Pillow
+            with Image.open(file_path) as img:
+                img.verify()  # Verify headers without decoding full image
+            return True
         except Exception:
             return False
 

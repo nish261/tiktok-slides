@@ -269,10 +269,9 @@ class InterfaceSettingsManager:
             logger.debug(f"Settings resolution - Source: {settings_source}, Content: {content_type}, Product: {product}")
 
             # Get settings based on source priority (custom > product > content > default)
-
-            
-            if settings_source == "custom" and "settings" in image_data:
-                # Custom settings are stored directly in image_data
+            # Be resilient if settings_source says 'custom' but settings are None
+            if settings_source == "custom" and image_data.get("settings"):
+                # Custom settings are stored directly in image_data when present
                 current_settings = {"settings": image_data["settings"]}
                 logger.debug("Using custom settings from image data")
             elif settings_source == "product" and product:
@@ -563,8 +562,8 @@ class InterfaceSettingsManager:
                     return content_settings.get("settings")
                 logger.error(f"No content type settings found for {content_type}")
 
-            # If settings_source is default OR settings are None, get from default template
-            if settings_source == "default" or image_data.get("settings") is None:
+            # If image has no settings, or settings_source is default, fall back
+            if image_data.get("settings") is None or settings_source == "default":
                 logger.debug("SETTINGS DEBUG - Getting default settings")
                 default_result = self.metadata_editor.get_settings("default")
                 logger.debug(f"SETTINGS DEBUG - Default settings result: {default_result}")
@@ -1640,10 +1639,16 @@ class InterfaceSettingsManager:
                                 )
                                 
                                 # Save preview image
+                                # Always save previews as PNG to avoid JPEG RGBA errors
                                 preview_dir = self.base_path / "preview"
                                 preview_dir.mkdir(exist_ok=True)
-                                preview_path = preview_dir / f"{current_image}"
-                                preview_image.save(str(preview_path))
+                                from pathlib import Path as _P
+                                preview_filename = f"{_P(current_image).stem}.png"
+                                preview_path = preview_dir / preview_filename
+                                to_save = preview_image
+                                if to_save.mode != "RGBA":
+                                    to_save = to_save.convert("RGBA")
+                                to_save.save(str(preview_path))
                                 
                                 # Update session state with preview path
                                 st.session_state.preview_image_path = str(preview_path)

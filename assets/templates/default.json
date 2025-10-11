@@ -1,6 +1,6 @@
 {
   "base_settings": {
-    "default_text_type": "highlight"
+    "default_text_type": "plain"
   },
   "text_settings": {
     "plain": {

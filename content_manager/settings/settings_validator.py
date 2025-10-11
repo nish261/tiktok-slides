@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 from typing import Dict, List, Literal, Optional, Union
 
-from content_manager.settings.settings_constants import VALID_TEXT_TYPES
+from content_manager.settings.settings_constants import VALID_TEXT_TYPES, BASE_DIR
 
 # TODO product settings cannot have duplicate settings!!!
 
@@ -11,7 +11,8 @@ class SettingsValidator:
     """Validates all settings operations against defined rules and constants."""
 
     def __init__(self):
-        self.fonts_dir = Path("assets/fonts")
+        # Resolve fonts directory relative to package root to avoid CWD issues
+        self.fonts_dir = BASE_DIR / "assets" / "fonts"
         self.VALID_TEXT_TYPES = VALID_TEXT_TYPES
 
     def validate_settings(self, settings: Dict) -> bool:

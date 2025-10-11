@@ -1,6 +1,16 @@
 from PIL import Image, ImageDraw, ImageFont
+try:
+    # Emoji rendering helper; falls back to Pillow if unavailable
+    from pilmoji import Pilmoji  # type: ignore
+    from pilmoji.source import GoogleEmojiSource  # type: ignore
+    _HAS_PILMOJI = True
+except Exception:  # pragma: no cover - optional dependency
+    Pilmoji = None  # type: ignore
+    GoogleEmojiSource = None  # type: ignore
+    _HAS_PILMOJI = False
 import logging
 import random
+from .emoji_utils import parse_text_with_emojis, load_fonts
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +59,7 @@ def draw_plain_image(
 
     # First upscale the base image with LANCZOS
     scale = 2
-    base = image.copy()
+    base = image.copy().convert("RGBA")
     base = base.resize((width * scale, height * scale), Image.Resampling.LANCZOS)
     
     # Print original image metadata
@@ -66,8 +76,8 @@ def draw_plain_image(
     text_layer = Image.new("RGBA", (scaled_width, scaled_height), (0, 0, 0, 0))
     draw = ImageDraw.Draw(text_layer)
 
-    # Load font at higher resolution
-    font = ImageFont.truetype(font_path, scaled_font_size)
+    # Load both text and emoji fonts at higher resolution
+    text_font, emoji_font = load_fonts(font_path, scaled_font_size)
 
     # Scale other parameters
     scaled_max_width = max_width * scale
@@ -75,7 +85,7 @@ def draw_plain_image(
     scaled_outline_width = outline_width * scale
 
     # Rest of the position calculations, but scaled
-    lines = wrap_text(draw, text, font, scaled_max_width)
+    lines = wrap_text(draw, text, text_font, scaled_max_width)
     line_spacing = scaled_font_size * 1.2
     total_height = len(lines) * line_spacing
 
@@ -89,35 +99,49 @@ def draw_plain_image(
         )
     )
 
-    # Draw text at higher resolution
+    # Draw text at higher resolution using Pilmoji
     for i, line in enumerate(lines):
-        bbox = draw.textbbox((0, 0), line, font=font)
-        text_width = bbox[2] - bbox[0]
+        # Calculate total line width for centering
+        bbox = draw.textbbox((0, 0), line, font=text_font)
+        total_width = bbox[2] - bbox[0]
+        
         x = int(scaled_width * width_center_position)
-        line_x = x - (text_width // 2)
+        line_x = x - (total_width // 2)
         line_y = y + (i * line_spacing)
 
-        # Draw outline
-        for adj_x in range(-scaled_outline_width, scaled_outline_width + 1):
-            for adj_y in range(-scaled_outline_width, scaled_outline_width + 1):
-                draw.text(
-                    (line_x + adj_x, line_y + adj_y),
-                    line,
-                    font=font,
-                    fill=outline_color
-                )
-
-        # Draw main text
-        draw.text(
-            (line_x, line_y), 
-            line, 
-            font=font, 
-            fill=text_color
-        )
+        # Draw text with mixed font approach for emoji support
+        segments = parse_text_with_emojis(line)
+        current_x = line_x
+        
+        for segment, is_emoji in segments:
+            if is_emoji:
+                # Use emoji font for emoji segments
+                font = emoji_font
+            else:
+                # Use text font for regular text
+                font = text_font
+            
+            # Draw outline first if needed
+            if scaled_outline_width > 0:
+                for adj_x in range(-scaled_outline_width, scaled_outline_width + 1):
+                    for adj_y in range(-scaled_outline_width, scaled_outline_width + 1):
+                        if adj_x != 0 or adj_y != 0:
+                            draw.text((current_x + adj_x, line_y + adj_y), segment, font=font, fill=outline_color)
+            
+            # Draw main text
+            draw.text((current_x, line_y), segment, font=font, fill=text_color)
+            
+            # Calculate width of segment and advance position
+            bbox = draw.textbbox((0, 0), segment, font=font)
+            segment_width = bbox[2] - bbox[0]
+            current_x += segment_width
 
     # Scale back down with high-quality resampling
     text_layer = text_layer.resize((width, height), Image.Resampling.LANCZOS)
-    result = Image.alpha_composite(base.resize((width, height), Image.Resampling.LANCZOS), text_layer)
+    base_resized = base.resize((width, height), Image.Resampling.LANCZOS)
+    if base_resized.mode != "RGBA":
+        base_resized = base_resized.convert("RGBA")
+    result = Image.alpha_composite(base_resized, text_layer)
 
     # Print final image metadata
     logger.critical("Final Image Metadata:")
@@ -126,6 +150,96 @@ def draw_plain_image(
             logger.critical(f"{k}: {v}")
 
     return result
+
+
+def draw_mixed_text_line(draw, line, x, y, text_font, emoji_font, text_color, outline_color, outline_width):
+    """Draw a single line of text with mixed fonts for emojis and regular text"""
+    current_x = x
+    segments = parse_text_with_emojis(line)
+    
+    # Log font information
+    logger.info(f"Drawing line: '{line}'")
+    logger.info(f"Text font path: {getattr(text_font, 'path', 'No path attr')}")
+    logger.info(f"Emoji font path: {getattr(emoji_font, 'path', 'No path attr')}")
+    logger.info(f"Parsed segments: {segments}")
+    
+    for segment, is_emoji in segments:
+        font = emoji_font if is_emoji else text_font
+        logger.info(f"Drawing segment: '{segment}' (is_emoji: {is_emoji}) with font: {getattr(font, 'path', 'No path attr')}")
+        print(f"DEBUG: Drawing segment '{segment}' (is_emoji: {is_emoji}) with font: {getattr(font, 'path', 'No path attr')}")
+        
+        # Use Pilmoji for emoji segments if available, otherwise fallback to regular draw
+        if _HAS_PILMOJI and is_emoji:
+            print(f"DEBUG: Attempting to use Pilmoji for emoji: '{segment}'")
+            try:
+                pilmoji = Pilmoji(draw.im, source=TwemojiSource)
+
+                # Draw outline for emoji (simpler approach)
+                if outline_width > 0:
+                    # Draw outline by drawing emoji multiple times with offset
+                    for adj_x in range(-outline_width, outline_width + 1):
+                        for adj_y in range(-outline_width, outline_width + 1):
+                            if adj_x != 0 or adj_y != 0:
+                                pilmoji.text((current_x + adj_x, y + adj_y), segment, font=emoji_font, fill=outline_color)
+
+                # Draw main emoji with embedded color support
+                pilmoji.text((current_x, y), segment, font=emoji_font, fill=text_color, embedded_color=True)
+
+            except Exception as e:
+                print(f"Pilmoji failed for emoji '{segment}', falling back to regular draw: {e}")
+                print(f"DEBUG: Using fallback font drawing for emoji: '{segment}'")
+                # Fallback to regular drawing with outline
+                for adj_x in range(-outline_width, outline_width + 1):
+                    for adj_y in range(-outline_width, outline_width + 1):
+                        draw.text(
+                            (current_x + adj_x, y + adj_y),
+                            segment,
+                            font=font,
+                            fill=outline_color,
+                        )
+
+                draw.text((current_x, y), segment, font=font, fill=text_color)
+        else:
+            # Regular text or emoji - draw with outline
+            if is_emoji:
+                print(f"DEBUG: Drawing emoji '{segment}' with regular font (Pilmoji not available)")
+            for adj_x in range(-outline_width, outline_width + 1):
+                for adj_y in range(-outline_width, outline_width + 1):
+                    draw.text(
+                        (current_x + adj_x, y + adj_y),
+                        segment,
+                        font=font,
+                        fill=outline_color,
+                    )
+
+            # Draw main text with PNG-based emoji overlay
+            if is_emoji:
+                # Use PNG overlay for crisp, properly-sized emojis
+                # Use font size for emoji width calculation
+                emoji_size = text_font.size
+                
+                # Calculate position to align emoji with text baseline
+                emoji_y = int(y - (emoji_size * 0.2))  # Adjust for visual alignment
+                emoji_position = (int(current_x), emoji_y)
+                
+                # Render emoji as PNG overlay
+                # Skip PNG overlay rendering - use Pilmoji instead
+                pass
+                
+                # Update current_x to account for emoji width
+                current_x += emoji_size
+            else:
+                draw.text(
+                    (current_x, y),
+                    segment,
+                    font=font,
+                    fill=text_color,
+                )
+                
+                # Calculate width of this segment to position next segment
+                bbox = draw.textbbox((0, 0), segment, font=font)
+                segment_width = bbox[2] - bbox[0]
+                current_x += segment_width
 
 
 def wrap_text(draw, text, font, max_width):

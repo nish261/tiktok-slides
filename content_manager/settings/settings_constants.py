@@ -11,8 +11,9 @@ VALID_TEXT_TYPES = {
     },
 }
 
-# Define paths
-TEMPLATE_PATH = Path("assets/templates")
+# Define paths relative to the package directory to avoid CWD issues
+BASE_DIR = Path(__file__).resolve().parents[2]  # .../tiktok_slides (package root)
+TEMPLATE_PATH = BASE_DIR / "assets" / "templates"
 DEFAULT_TEMPLATE = TEMPLATE_PATH / "default.json"
 
 VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".JPG", ".JPEG"}
