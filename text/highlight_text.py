@@ -118,15 +118,38 @@ def draw_wrapped_text(
     for line_data in reversed(line_info):
         draw_rounded_rectangle(draw, line_data["highlight_coords"], corner_radius, fill=background_color)
 
-    # Draw text top to bottom using mixed font approach
+    # Draw text top to bottom using emoji PNG overlay approach
     for line_data in line_info:
         segments = parse_text_with_emojis(line_data["text"])
         current_x = line_data["x"]
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Use emoji font for emoji segments
-                segment_font = emoji_font
+                # Render emoji as PNG overlay
+                from .emoji_png_manager import emoji_png_manager
+                emoji_size = int(font.size * 1.2)  # Slightly larger than text
+                
+                # Get emoji PNG and render it
+                png_path = emoji_png_manager.get_emoji_png_path(segment)
+                if png_path:
+                    try:
+                        emoji_img = Image.open(png_path).convert("RGBA")
+                        emoji_img = emoji_img.resize((emoji_size, emoji_size), Image.Resampling.LANCZOS)
+                        
+                        # Calculate position for emoji (center aligned with text)
+                        emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                        image.paste(emoji_img, (current_x, emoji_y), emoji_img)
+                        
+                        # Advance position by emoji width
+                        current_x += emoji_size
+                        continue
+                    except Exception as e:
+                        print(f"Failed to render emoji PNG {segment}: {e}")
+                        # Fallback to text rendering
+                        segment_font = emoji_font
+                else:
+                    # Fallback to text rendering
+                    segment_font = emoji_font
             else:
                 # Use text font for regular text
                 segment_font = font

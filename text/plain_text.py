@@ -109,14 +109,37 @@ def draw_plain_image(
         line_x = x - (total_width // 2)
         line_y = y + (i * line_spacing)
 
-        # Draw text with mixed font approach for emoji support
+        # Draw text with emoji PNG overlay approach
         segments = parse_text_with_emojis(line)
         current_x = line_x
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Use emoji font for emoji segments
-                font = emoji_font
+                # Render emoji as PNG overlay
+                from .emoji_png_manager import emoji_png_manager
+                emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
+                
+                # Get emoji PNG and render it
+                png_path = emoji_png_manager.get_emoji_png_path(segment)
+                if png_path:
+                    try:
+                        emoji_img = Image.open(png_path).convert("RGBA")
+                        emoji_img = emoji_img.resize((emoji_size, emoji_size), Image.Resampling.LANCZOS)
+                        
+                        # Calculate position for emoji (center aligned with text)
+                        emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                        text_layer.paste(emoji_img, (current_x, emoji_y), emoji_img)
+                        
+                        # Advance position by emoji width
+                        current_x += emoji_size
+                        continue
+                    except Exception as e:
+                        print(f"Failed to render emoji PNG {segment}: {e}")
+                        # Fallback to text rendering
+                        font = emoji_font
+                else:
+                    # Fallback to text rendering
+                    font = emoji_font
             else:
                 # Use text font for regular text
                 font = text_font
