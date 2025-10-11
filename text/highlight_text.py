@@ -125,29 +125,32 @@ def draw_wrapped_text(
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Render emoji as PNG overlay
-                from .emoji_png_manager import emoji_png_manager
+                # Render emoji as PNG overlay using SVG pipeline
+                from .emoji_svg_renderer import emoji_svg_renderer
                 emoji_size = int(font.size * 1.2)  # Slightly larger than text
                 
-                # Get emoji PNG and render it
-                png_path = emoji_png_manager.get_emoji_png_path(segment)
-                if png_path:
+                print(f"HIGHLIGHT // Attempting SVG→PNG overlay for emoji: {segment}")
+                
+                # Calculate position for emoji (center aligned with text)
+                emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                
+                if base_image is not None:
                     try:
-                        emoji_img = Image.open(png_path).convert("RGBA")
-                        emoji_img = emoji_img.resize((emoji_size, emoji_size), Image.Resampling.LANCZOS)
-                        
-                        # Calculate position for emoji (center aligned with text)
-                        emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                        image.paste(emoji_img, (current_x, emoji_y), emoji_img)
+                        # Use the SVG renderer to overlay the emoji
+                        base_image = emoji_svg_renderer.render_emoji_overlay(
+                            base_image, segment, emoji_size, (current_x, emoji_y)
+                        )
+                        print(f"HIGHLIGHT // Successfully rendered emoji SVG→PNG for {segment}")
                         
                         # Advance position by emoji width
                         current_x += emoji_size
                         continue
                     except Exception as e:
-                        print(f"Failed to render emoji PNG {segment}: {e}")
+                        print(f"HIGHLIGHT // Failed to render emoji SVG→PNG {segment}: {e}")
                         # Fallback to text rendering
                         segment_font = emoji_font
                 else:
+                    print(f"HIGHLIGHT // base_image is None, using font fallback for {segment}")
                     # Fallback to text rendering
                     segment_font = emoji_font
             else:

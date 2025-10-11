@@ -115,29 +115,25 @@ def draw_plain_image(
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Render emoji as PNG overlay
-                from .emoji_png_manager import emoji_png_manager
+                # Render emoji as PNG overlay using SVG pipeline
+                from .emoji_svg_renderer import emoji_svg_renderer
                 emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
                 
-                # Get emoji PNG and render it
-                png_path = emoji_png_manager.get_emoji_png_path(segment)
-                if png_path:
-                    try:
-                        emoji_img = Image.open(png_path).convert("RGBA")
-                        emoji_img = emoji_img.resize((emoji_size, emoji_size), Image.Resampling.LANCZOS)
-                        
-                        # Calculate position for emoji (center aligned with text)
-                        emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                        text_layer.paste(emoji_img, (current_x, emoji_y), emoji_img)
-                        
-                        # Advance position by emoji width
-                        current_x += emoji_size
-                        continue
-                    except Exception as e:
-                        print(f"Failed to render emoji PNG {segment}: {e}")
-                        # Fallback to text rendering
-                        font = emoji_font
-                else:
+                # Calculate position for emoji (center aligned with text)
+                emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                
+                try:
+                    # Use the SVG renderer to overlay the emoji
+                    text_layer = emoji_svg_renderer.render_emoji_overlay(
+                        text_layer, segment, emoji_size, (current_x, emoji_y)
+                    )
+                    print(f"PLAIN // Successfully rendered emoji SVG→PNG for {segment}")
+                    
+                    # Advance position by emoji width
+                    current_x += emoji_size
+                    continue
+                except Exception as e:
+                    print(f"PLAIN // Failed to render emoji SVG→PNG {segment}: {e}")
                     # Fallback to text rendering
                     font = emoji_font
             else:
