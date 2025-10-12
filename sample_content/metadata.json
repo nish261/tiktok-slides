@@ -25,7 +25,7 @@
       {
         "name": "all",
         "prevent_duplicates": false,
-        "current_count": 5,
+        "current_count": 4,
         "min_occurrences": 1
       }
     ]
@@ -34,7 +34,6 @@
     "cta": {
       "path": "/Users/nishchalasri/Desktop/tiktok_slides/tiktok_slides/sample_content/cta",
       "images": [
-        "548a49d0c468f81b94626f897bd774f3.jpg",
         "96e9b4b6ddfe77a0d5cad6ef58b82724.jpg",
         "9e6ad643d56bbcef0c322dd8399e891c.jpg",
         "b8dcdc75168ba01568da656a1382b91a.jpg",
@@ -49,6 +48,7 @@
         "105678fb25e371fa1e62b2ad6595e183.jpg",
         "2b0c4803b2e8427f594c275067981d6a.jpg",
         "2c688fba25b4c235a9d93f81bb5d3251.jpg",
+        "548a49d0c468f81b94626f897bd774f3.jpg",
         "742da066261d4fd7ae41dc618d72f618.jpg",
         "d880e3c94a27fd66bf53c76c17a765a9.jpg"
       ]
@@ -151,12 +151,12 @@
       "settings_level": "default"
     },
     "548a49d0c468f81b94626f897bd774f3.jpg": {
-      "content_type": "cta",
+      "content_type": "hook",
       "dimensions": {
         "width": 736,
         "height": 1308
       },
-      "product": "all",
+      "product": null,
       "settings_source": "default",
       "settings": null
     },

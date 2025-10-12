@@ -115,25 +115,25 @@ def draw_plain_image(
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Render emoji as PNG overlay using SVG pipeline
-                from .emoji_svg_renderer import emoji_svg_renderer
+                # Render emoji as PNG overlay using simple renderer
+                from .emoji_renderer_simple import simple_emoji_renderer
                 emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
                 
                 # Calculate position for emoji (center aligned with text)
                 emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
                 
                 try:
-                    # Use the SVG renderer to overlay the emoji
-                    text_layer = emoji_svg_renderer.render_emoji_overlay(
+                    # Use the simple renderer to overlay the emoji
+                    text_layer = simple_emoji_renderer.render_emoji_overlay(
                         text_layer, segment, emoji_size, (current_x, emoji_y)
                     )
-                    print(f"PLAIN // Successfully rendered emoji SVG→PNG for {segment}")
+                    print(f"PLAIN // Successfully rendered emoji PNG for {segment}")
                     
                     # Advance position by emoji width
                     current_x += emoji_size
                     continue
                 except Exception as e:
-                    print(f"PLAIN // Failed to render emoji SVG→PNG {segment}: {e}")
+                    print(f"PLAIN // Failed to render emoji PNG {segment}: {e}")
                     # Fallback to text rendering
                     font = emoji_font
             else:

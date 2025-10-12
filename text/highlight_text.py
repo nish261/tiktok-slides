@@ -125,28 +125,28 @@ def draw_wrapped_text(
         
         for segment, is_emoji in segments:
             if is_emoji:
-                # Render emoji as PNG overlay using SVG pipeline
-                from .emoji_svg_renderer import emoji_svg_renderer
+                # Render emoji as PNG overlay using simple renderer
+                from .emoji_renderer_simple import simple_emoji_renderer
                 emoji_size = int(font.size * 1.2)  # Slightly larger than text
                 
-                print(f"HIGHLIGHT // Attempting SVG→PNG overlay for emoji: {segment}")
+                print(f"HIGHLIGHT // Attempting emoji PNG overlay for: {segment}")
                 
                 # Calculate position for emoji (center aligned with text)
                 emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
                 
                 if base_image is not None:
                     try:
-                        # Use the SVG renderer to overlay the emoji
-                        base_image = emoji_svg_renderer.render_emoji_overlay(
+                        # Use the simple renderer to overlay the emoji
+                        base_image = simple_emoji_renderer.render_emoji_overlay(
                             base_image, segment, emoji_size, (current_x, emoji_y)
                         )
-                        print(f"HIGHLIGHT // Successfully rendered emoji SVG→PNG for {segment}")
+                        print(f"HIGHLIGHT // Successfully rendered emoji PNG for {segment}")
                         
                         # Advance position by emoji width
                         current_x += emoji_size
                         continue
                     except Exception as e:
-                        print(f"HIGHLIGHT // Failed to render emoji SVG→PNG {segment}: {e}")
+                        print(f"HIGHLIGHT // Failed to render emoji PNG {segment}: {e}")
                         # Fallback to text rendering
                         segment_font = emoji_font
                 else:
