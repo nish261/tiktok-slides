@@ -58,9 +58,41 @@ class SimpleEmojiRenderer:
         return self._create_emoji_png(emoji_char, font_size, png_path)
     
     def _create_emoji_png(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
-        """Create emoji PNG using system fonts first, then Twemoji fallback"""
+        """Create emoji PNG using Twemoji CDN for consistent colored emojis"""
         try:
-            # Try system fonts first (monochrome but fast)
+            # Skip system fonts - they only render monochrome
+            # Go directly to Twemoji for colored emojis
+            print(f"Creating colored emoji PNG for {emoji_char} using Twemoji...")
+            
+            codepath = self._emoji_to_twemoji_path(emoji_char)
+            twemoji_url = f"https://twemoji.maxcdn.com/v/latest/72x72/{codepath}.png"
+            
+            # temp download path
+            tmp_dl = png_path.with_suffix(".twemoji.tmp")
+            ok = self._download_url(twemoji_url, tmp_dl)
+            if ok:
+                # open and resize to desired font_size
+                img = Image.open(tmp_dl).convert("RGBA")
+                final_img = img.resize((font_size, font_size), Image.Resampling.LANCZOS)
+                final_img.save(png_path, "PNG")
+                try:
+                    tmp_dl.unlink()
+                except Exception:
+                    pass
+                print(f"Successfully created colored emoji PNG using Twemoji for {emoji_char}")
+                return str(png_path)
+            else:
+                print(f"Twemoji download failed for {emoji_char}, trying fallback...")
+                # Fallback to system font (monochrome)
+                return self._create_monochrome_emoji(emoji_char, font_size, png_path)
+                
+        except Exception as e:
+            print(f"Failed to create emoji PNG for {emoji_char}: {e}")
+            return self._create_monochrome_emoji(emoji_char, font_size, png_path)
+    
+    def _create_monochrome_emoji(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
+        """Fallback: Create monochrome emoji using system fonts"""
+        try:
             temp_size = max(256, font_size * 3)
             temp_img = Image.new('RGBA', (temp_size, temp_size), (0, 0, 0, 0))
             draw = ImageDraw.Draw(temp_img)
@@ -94,34 +126,13 @@ class SimpleEmojiRenderer:
                     cropped = temp_img.crop(bbox2)
                     final_img = cropped.resize((font_size, font_size), Image.Resampling.LANCZOS)
                     final_img.save(png_path, "PNG")
-                    print(f"Successfully created emoji PNG using system font for {emoji_char}")
+                    print(f"Created monochrome emoji PNG for {emoji_char} (fallback)")
                     return str(png_path)
             
-            # Fallback -> use Twemoji CDN for colored emojis
-            print(f"System font failed for {emoji_char}, trying Twemoji...")
-            codepath = self._emoji_to_twemoji_path(emoji_char)
-            twemoji_url = f"https://twemoji.maxcdn.com/v/latest/72x72/{codepath}.png"
-            
-            # temp download path
-            tmp_dl = png_path.with_suffix(".twemoji.tmp")
-            ok = self._download_url(twemoji_url, tmp_dl)
-            if ok:
-                # open and resize to desired font_size
-                img = Image.open(tmp_dl).convert("RGBA")
-                final_img = img.resize((font_size, font_size), Image.Resampling.LANCZOS)
-                final_img.save(png_path, "PNG")
-                try:
-                    tmp_dl.unlink()
-                except Exception:
-                    pass
-                print(f"Successfully created emoji PNG using Twemoji for {emoji_char}")
-                return str(png_path)
-            else:
-                print(f"Twemoji download failed for {emoji_char}")
-                return None
+            return None
                 
         except Exception as e:
-            print(f"Failed to create emoji PNG for {emoji_char}: {e}")
+            print(f"Failed to create monochrome emoji PNG for {emoji_char}: {e}")
             return None
     
     def render_emoji_overlay(self, 

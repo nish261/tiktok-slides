@@ -126,7 +126,9 @@ def draw_plain_image(
             )
             
             # Paste the rendered line onto the text layer
-            text_layer.paste(temp_img, (line_x, line_y), temp_img)
+            # Convert float positions to integers
+            int_line_x, int_line_y = int(line_x), int(line_y)
+            text_layer.paste(temp_img, (int_line_x, int_line_y), temp_img)
             print(f"PLAIN // Successfully rendered mixed text with pilmoji: {line[:50]}...")
             
         except Exception as e:
@@ -142,12 +144,12 @@ def draw_plain_image(
                     emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
                     
                     # Calculate position for emoji (center aligned with text)
-                    emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                    emoji_y = int(line_y) - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
                     
                     try:
                         # Use the simple renderer to overlay the emoji
                         text_layer = simple_emoji_renderer.render_emoji_overlay(
-                            text_layer, segment, emoji_size, (current_x, emoji_y)
+                            text_layer, segment, emoji_size, (int(current_x), emoji_y)
                         )
                         print(f"PLAIN // Successfully rendered emoji PNG for {segment}")
                         

@@ -138,7 +138,9 @@ def draw_wrapped_text(
             
             # Paste the rendered line onto the base image
             if base_image is not None:
-                base_image.paste(temp_img, (line_data["x"], line_data["y"]), temp_img)
+                # Convert float positions to integers
+                x, y = int(line_data["x"]), int(line_data["y"])
+                base_image.paste(temp_img, (x, y), temp_img)
                 print(f"HIGHLIGHT // Successfully rendered mixed text with pilmoji: {line_data['text'][:50]}...")
             
         except Exception as e:
@@ -156,13 +158,13 @@ def draw_wrapped_text(
                     print(f"HIGHLIGHT // Attempting emoji PNG overlay for: {segment}")
                     
                     # Calculate position for emoji (center aligned with text)
-                    emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                    emoji_y = int(line_data["y"]) - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
                     
                     if base_image is not None:
                         try:
                             # Use the simple renderer to overlay the emoji
                             base_image = simple_emoji_renderer.render_emoji_overlay(
-                                base_image, segment, emoji_size, (current_x, emoji_y)
+                                base_image, segment, emoji_size, (int(current_x), emoji_y)
                             )
                             print(f"HIGHLIGHT // Successfully rendered emoji PNG for {segment}")
                             

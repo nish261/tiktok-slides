@@ -42,7 +42,10 @@ class PilmojiRenderer:
         try:
             # Use pilmoji for mixed text+emoji rendering
             with Pilmoji(base_image) as pilmoji:
-                pilmoji.text(position, text, font=font, fill=fill, spacing=spacing)
+                # Convert float positions to integers
+                x, y = position
+                int_position = (int(x), int(y))
+                pilmoji.text(int_position, text, font=font, fill=fill, spacing=spacing)
             
             return base_image
             
@@ -81,6 +84,7 @@ class PilmojiRenderer:
                 lines = self._wrap_text(pilmoji, text, font, max_width)
                 
                 x, y = position
+                x, y = int(x), int(y)  # Convert to integers
                 for line in lines:
                     pilmoji.text((x, y), line, font=font, fill=fill)
                     y += font.size + line_spacing
