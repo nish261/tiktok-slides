@@ -8,7 +8,7 @@
     "hook": [
       {
         "name": "all",
-        "prevent_duplicates": false,
+        "prevent_duplicates": true,
         "current_count": 5,
         "min_occurrences": 1
       }

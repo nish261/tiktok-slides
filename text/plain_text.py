@@ -109,51 +109,73 @@ def draw_plain_image(
         line_x = x - (total_width // 2)
         line_y = y + (i * line_spacing)
 
-        # Draw text with emoji PNG overlay approach
-        segments = parse_text_with_emojis(line)
-        current_x = line_x
-        
-        for segment, is_emoji in segments:
-            if is_emoji:
-                # Render emoji as PNG overlay using simple renderer
-                from .emoji_renderer_simple import simple_emoji_renderer
-                emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
-                
-                # Calculate position for emoji (center aligned with text)
-                emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                
-                try:
-                    # Use the simple renderer to overlay the emoji
-                    text_layer = simple_emoji_renderer.render_emoji_overlay(
-                        text_layer, segment, emoji_size, (current_x, emoji_y)
-                    )
-                    print(f"PLAIN // Successfully rendered emoji PNG for {segment}")
+        try:
+            # Use pilmoji for mixed text+emoji rendering
+            from .emoji_pilmoji_renderer import pilmoji_renderer
+            
+            # Create a temporary image for this line to use with pilmoji
+            temp_img = Image.new('RGBA', (scaled_width, scaled_font_size + 20), (0, 0, 0, 0))
+            
+            # Render the line with pilmoji
+            temp_img = pilmoji_renderer.render_mixed_text(
+                temp_img, 
+                line, 
+                text_font, 
+                (0, 0), 
+                fill=text_color
+            )
+            
+            # Paste the rendered line onto the text layer
+            text_layer.paste(temp_img, (line_x, line_y), temp_img)
+            print(f"PLAIN // Successfully rendered mixed text with pilmoji: {line[:50]}...")
+            
+        except Exception as e:
+            print(f"PLAIN // Pilmoji rendering failed: {e}, using fallback")
+            # Fallback to segment-based rendering
+            segments = parse_text_with_emojis(line)
+            current_x = line_x
+            
+            for segment, is_emoji in segments:
+                if is_emoji:
+                    # Render emoji as PNG overlay using simple renderer
+                    from .emoji_renderer_simple import simple_emoji_renderer
+                    emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
                     
-                    # Advance position by emoji width
-                    current_x += emoji_size
-                    continue
-                except Exception as e:
-                    print(f"PLAIN // Failed to render emoji PNG {segment}: {e}")
-                    # Fallback to text rendering
-                    font = emoji_font
-            else:
-                # Use text font for regular text
-                font = text_font
-            
-            # Draw outline first if needed
-            if scaled_outline_width > 0:
-                for adj_x in range(-scaled_outline_width, scaled_outline_width + 1):
-                    for adj_y in range(-scaled_outline_width, scaled_outline_width + 1):
-                        if adj_x != 0 or adj_y != 0:
-                            draw.text((current_x + adj_x, line_y + adj_y), segment, font=font, fill=outline_color)
-            
-            # Draw main text
-            draw.text((current_x, line_y), segment, font=font, fill=text_color)
-            
-            # Calculate width of segment and advance position
-            bbox = draw.textbbox((0, 0), segment, font=font)
-            segment_width = bbox[2] - bbox[0]
-            current_x += segment_width
+                    # Calculate position for emoji (center aligned with text)
+                    emoji_y = line_y - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                    
+                    try:
+                        # Use the simple renderer to overlay the emoji
+                        text_layer = simple_emoji_renderer.render_emoji_overlay(
+                            text_layer, segment, emoji_size, (current_x, emoji_y)
+                        )
+                        print(f"PLAIN // Successfully rendered emoji PNG for {segment}")
+                        
+                        # Advance position by emoji width
+                        current_x += emoji_size
+                        continue
+                    except Exception as e2:
+                        print(f"PLAIN // Failed to render emoji PNG {segment}: {e2}")
+                        # Fallback to text rendering
+                        font = emoji_font
+                else:
+                    # Use text font for regular text
+                    font = text_font
+                
+                # Draw outline first if needed
+                if scaled_outline_width > 0:
+                    for adj_x in range(-scaled_outline_width, scaled_outline_width + 1):
+                        for adj_y in range(-scaled_outline_width, scaled_outline_width + 1):
+                            if adj_x != 0 or adj_y != 0:
+                                draw.text((current_x + adj_x, line_y + adj_y), segment, font=font, fill=outline_color)
+                
+                # Draw main text
+                draw.text((current_x, line_y), segment, font=font, fill=text_color)
+                
+                # Calculate width of segment and advance position
+                bbox = draw.textbbox((0, 0), segment, font=font)
+                segment_width = bbox[2] - bbox[0]
+                current_x += segment_width
 
     # Scale back down with high-quality resampling
     text_layer = text_layer.resize((width, height), Image.Resampling.LANCZOS)

@@ -4,6 +4,8 @@ Uses system emoji fonts and creates PNG overlays directly.
 """
 import os
 import hashlib
+import urllib.request
+import time
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 from typing import Optional
@@ -17,6 +19,28 @@ class SimpleEmojiRenderer:
     def __init__(self, emoji_dir: str = "assets/emojis"):
         self.emoji_dir = BASE_DIR / emoji_dir
         self.emoji_dir.mkdir(parents=True, exist_ok=True)
+        
+    def _emoji_to_twemoji_path(self, emoji_char: str) -> str:
+        """Convert emoji string to twemoji-style codepoint sequence"""
+        cps = [f"{ord(ch):x}" for ch in emoji_char]
+        return "-".join(cps)
+    
+    def _download_url(self, url: str, dest: Path, retries: int = 2) -> bool:
+        """Download a URL to a file with retries"""
+        try:
+            for attempt in range(retries):
+                try:
+                    with urllib.request.urlopen(url, timeout=15) as resp:
+                        if resp.status != 200:
+                            raise Exception(f"HTTP {resp.status}")
+                        data = resp.read()
+                        dest.write_bytes(data)
+                        return True
+                except Exception:
+                    time.sleep(0.5 + attempt)
+            return False
+        except Exception:
+            return False 
         
     def get_emoji_png_path(self, emoji_char: str, font_size: int = 100) -> Optional[str]:
         """Get PNG file path for emoji, creating it if needed"""
@@ -34,72 +58,68 @@ class SimpleEmojiRenderer:
         return self._create_emoji_png(emoji_char, font_size, png_path)
     
     def _create_emoji_png(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
-        """Create emoji PNG using system fonts"""
+        """Create emoji PNG using system fonts first, then Twemoji fallback"""
         try:
-            # Create a larger temporary image for rendering
-            temp_size = font_size * 3
+            # Try system fonts first (monochrome but fast)
+            temp_size = max(256, font_size * 3)
             temp_img = Image.new('RGBA', (temp_size, temp_size), (0, 0, 0, 0))
             draw = ImageDraw.Draw(temp_img)
-            
-            # Try different emoji fonts in order of preference
+
             emoji_fonts = [
-                "/System/Library/Fonts/Apple Color Emoji.ttc",  # macOS
-                "/System/Library/Fonts/Supplemental/Apple Color Emoji.ttc",  # macOS alternative
-                "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",  # Linux
-                "/Windows/Fonts/seguiemj.ttf",  # Windows
+                "/System/Library/Fonts/Apple Color Emoji.ttc",
+                "/System/Library/Fonts/Supplemental/Apple Color Emoji.ttc",
+                "/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf",
+                "/Windows/Fonts/seguiemj.ttf",
             ]
-            
-            font_loaded = False
+
+            font = None
             for font_path in emoji_fonts:
                 try:
                     if os.path.exists(font_path):
-                        # Apple Color Emoji needs size 20, others can use requested size
-                        if "Apple Color Emoji" in font_path:
-                            emoji_font_size = 20
-                        else:
-                            emoji_font_size = font_size
-                        
+                        emoji_font_size = 20 if "Apple Color Emoji" in font_path else font_size
                         font = ImageFont.truetype(font_path, emoji_font_size)
-                        font_loaded = True
-                        print(f"Loaded emoji font: {font_path}")
                         break
-                except Exception as e:
-                    print(f"Failed to load {font_path}: {e}")
+                except Exception:
                     continue
+
+            if font:
+                bbox = draw.textbbox((0, 0), emoji_char, font=font)
+                w = bbox[2] - bbox[0]
+                h = bbox[3] - bbox[1]
+                x = (temp_size - w) // 2
+                y = (temp_size - h) // 2
+                draw.text((x, y), emoji_char, font=font, fill=(0,0,0,255))
+                bbox2 = temp_img.getbbox()
+                if bbox2:
+                    cropped = temp_img.crop(bbox2)
+                    final_img = cropped.resize((font_size, font_size), Image.Resampling.LANCZOS)
+                    final_img.save(png_path, "PNG")
+                    print(f"Successfully created emoji PNG using system font for {emoji_char}")
+                    return str(png_path)
             
-            if not font_loaded:
-                print(f"No emoji font available for {emoji_char}")
-                return None
+            # Fallback -> use Twemoji CDN for colored emojis
+            print(f"System font failed for {emoji_char}, trying Twemoji...")
+            codepath = self._emoji_to_twemoji_path(emoji_char)
+            twemoji_url = f"https://twemoji.maxcdn.com/v/latest/72x72/{codepath}.png"
             
-            # Draw emoji in center of temporary image
-            text_bbox = draw.textbbox((0, 0), emoji_char, font=font)
-            text_width = text_bbox[2] - text_bbox[0]
-            text_height = text_bbox[3] - text_bbox[1]
-            
-            x = (temp_size - text_width) // 2
-            y = (temp_size - text_height) // 2
-            
-            # Draw the emoji
-            draw.text((x, y), emoji_char, font=font, fill=(0, 0, 0, 255))
-            
-            # Get bounding box of non-transparent pixels
-            bbox = temp_img.getbbox()
-            if bbox:
-                # Crop to content
-                cropped = temp_img.crop(bbox)
-                
-                # Resize to target size
-                final_img = cropped.resize((font_size, font_size), Image.Resampling.LANCZOS)
+            # temp download path
+            tmp_dl = png_path.with_suffix(".twemoji.tmp")
+            ok = self._download_url(twemoji_url, tmp_dl)
+            if ok:
+                # open and resize to desired font_size
+                img = Image.open(tmp_dl).convert("RGBA")
+                final_img = img.resize((font_size, font_size), Image.Resampling.LANCZOS)
+                final_img.save(png_path, "PNG")
+                try:
+                    tmp_dl.unlink()
+                except Exception:
+                    pass
+                print(f"Successfully created emoji PNG using Twemoji for {emoji_char}")
+                return str(png_path)
             else:
-                # If no content detected, create a minimal transparent image
-                final_img = Image.new('RGBA', (font_size, font_size), (0, 0, 0, 0))
-            
-            # Save PNG
-            final_img.save(png_path, 'PNG')
-            
-            print(f"Successfully created emoji PNG for {emoji_char}")
-            return str(png_path)
-            
+                print(f"Twemoji download failed for {emoji_char}")
+                return None
+                
         except Exception as e:
             print(f"Failed to create emoji PNG for {emoji_char}: {e}")
             return None
@@ -132,6 +152,7 @@ class SimpleEmojiRenderer:
             
             # Paste emoji onto base image
             x, y = position
+            x, y = int(x), int(y)  # Convert floats to integers
             base_image.paste(emoji_img, (x, y), emoji_img if emoji_img.mode == 'RGBA' else None)
             
             return base_image

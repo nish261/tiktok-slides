@@ -118,52 +118,76 @@ def draw_wrapped_text(
     for line_data in reversed(line_info):
         draw_rounded_rectangle(draw, line_data["highlight_coords"], corner_radius, fill=background_color)
 
-    # Draw text top to bottom using emoji PNG overlay approach
+    # Draw text top to bottom using pilmoji for mixed text+emoji
     for line_data in line_info:
-        segments = parse_text_with_emojis(line_data["text"])
-        current_x = line_data["x"]
-        
-        for segment, is_emoji in segments:
-            if is_emoji:
-                # Render emoji as PNG overlay using simple renderer
-                from .emoji_renderer_simple import simple_emoji_renderer
-                emoji_size = int(font.size * 1.2)  # Slightly larger than text
-                
-                print(f"HIGHLIGHT // Attempting emoji PNG overlay for: {segment}")
-                
-                # Calculate position for emoji (center aligned with text)
-                emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                
-                if base_image is not None:
-                    try:
-                        # Use the simple renderer to overlay the emoji
-                        base_image = simple_emoji_renderer.render_emoji_overlay(
-                            base_image, segment, emoji_size, (current_x, emoji_y)
-                        )
-                        print(f"HIGHLIGHT // Successfully rendered emoji PNG for {segment}")
-                        
-                        # Advance position by emoji width
-                        current_x += emoji_size
-                        continue
-                    except Exception as e:
-                        print(f"HIGHLIGHT // Failed to render emoji PNG {segment}: {e}")
+        try:
+            # Use pilmoji for mixed text+emoji rendering
+            from .emoji_pilmoji_renderer import pilmoji_renderer
+            
+            # Create a temporary image for this line to use with pilmoji
+            temp_img = Image.new('RGBA', (width, font.size + 20), (0, 0, 0, 0))
+            
+            # Render the line with pilmoji
+            temp_img = pilmoji_renderer.render_mixed_text(
+                temp_img, 
+                line_data["text"], 
+                font, 
+                (0, 0), 
+                fill=text_color
+            )
+            
+            # Paste the rendered line onto the base image
+            if base_image is not None:
+                base_image.paste(temp_img, (line_data["x"], line_data["y"]), temp_img)
+                print(f"HIGHLIGHT // Successfully rendered mixed text with pilmoji: {line_data['text'][:50]}...")
+            
+        except Exception as e:
+            print(f"HIGHLIGHT // Pilmoji rendering failed: {e}, using fallback")
+            # Fallback to segment-based rendering
+            segments = parse_text_with_emojis(line_data["text"])
+            current_x = line_data["x"]
+            
+            for segment, is_emoji in segments:
+                if is_emoji:
+                    # Render emoji as PNG overlay using simple renderer
+                    from .emoji_renderer_simple import simple_emoji_renderer
+                    emoji_size = int(font.size * 1.2)  # Slightly larger than text
+                    
+                    print(f"HIGHLIGHT // Attempting emoji PNG overlay for: {segment}")
+                    
+                    # Calculate position for emoji (center aligned with text)
+                    emoji_y = line_data["y"] - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
+                    
+                    if base_image is not None:
+                        try:
+                            # Use the simple renderer to overlay the emoji
+                            base_image = simple_emoji_renderer.render_emoji_overlay(
+                                base_image, segment, emoji_size, (current_x, emoji_y)
+                            )
+                            print(f"HIGHLIGHT // Successfully rendered emoji PNG for {segment}")
+                            
+                            # Advance position by emoji width
+                            current_x += emoji_size
+                            continue
+                        except Exception as e2:
+                            print(f"HIGHLIGHT // Failed to render emoji PNG {segment}: {e2}")
+                            # Fallback to text rendering
+                            segment_font = emoji_font
+                    else:
+                        print(f"HIGHLIGHT // base_image is None, using font fallback for {segment}")
                         # Fallback to text rendering
                         segment_font = emoji_font
                 else:
-                    print(f"HIGHLIGHT // base_image is None, using font fallback for {segment}")
-                    # Fallback to text rendering
-                    segment_font = emoji_font
-            else:
-                # Use text font for regular text
-                segment_font = font
-            
-            # Draw text segment
-            draw.text((current_x, line_data["y"]), segment, font=segment_font, fill=text_color)
-            
-            # Calculate width of segment and advance position
-            bbox = draw.textbbox((0, 0), segment, font=segment_font)
-            segment_width = bbox[2] - bbox[0]
-            current_x += segment_width
+                    # Use text font for regular text
+                    segment_font = font
+                
+                # Draw text segment
+                draw.text((current_x, line_data["y"]), segment, font=segment_font, fill=text_color)
+                
+                # Calculate width of segment and advance position
+                bbox = draw.textbbox((0, 0), segment, font=segment_font)
+                segment_width = bbox[2] - bbox[0]
+                current_x += segment_width
 
 
 def draw_highlight_image(
