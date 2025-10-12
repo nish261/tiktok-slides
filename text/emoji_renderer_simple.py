@@ -40,6 +40,53 @@ class SimpleEmojiRenderer:
                     time.sleep(0.5 + attempt)
             return False
         except Exception:
+            return False
+    
+    def _extract_apple_emoji(self, emoji_char: str, font_size: int, png_path: Path) -> bool:
+        """Extract Apple Color Emoji bitmap data and create PNG"""
+        try:
+            # Apple Color Emoji font path
+            apple_font_path = "/System/Library/Fonts/Apple Color Emoji.ttc"
+            if not os.path.exists(apple_font_path):
+                return False
+            
+            # Load Apple Color Emoji at its native size (20)
+            font = ImageFont.truetype(apple_font_path, 20)
+            
+            # Create a larger temporary image for better quality
+            temp_size = max(256, font_size * 4)
+            temp_img = Image.new('RGBA', (temp_size, temp_size), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(temp_img)
+            
+            # Get text bounding box
+            bbox = draw.textbbox((0, 0), emoji_char, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Center the emoji
+            x = (temp_size - text_width) // 2
+            y = (temp_size - text_height) // 2
+            
+            # Draw with embedded_color=True to get color bitmap
+            draw.text((x, y), emoji_char, font=font, fill=(0, 0, 0, 255), embedded_color=True)
+            
+            # Get bounding box of non-transparent pixels
+            bbox = temp_img.getbbox()
+            if bbox:
+                # Crop to content
+                cropped = temp_img.crop(bbox)
+                
+                # Resize to target size with high quality
+                final_img = cropped.resize((font_size, font_size), Image.Resampling.LANCZOS)
+                
+                # Save as PNG
+                final_img.save(png_path, "PNG")
+                return True
+            
+            return False
+            
+        except Exception as e:
+            print(f"Apple emoji extraction failed for {emoji_char}: {e}")
             return False 
         
     def get_emoji_png_path(self, emoji_char: str, font_size: int = 100) -> Optional[str]:
@@ -58,12 +105,18 @@ class SimpleEmojiRenderer:
         return self._create_emoji_png(emoji_char, font_size, png_path)
     
     def _create_emoji_png(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
-        """Create emoji PNG using Twemoji CDN for consistent colored emojis"""
+        """Create emoji PNG using Apple Color Emoji extraction for authentic Apple emojis"""
         try:
-            # Skip system fonts - they only render monochrome
-            # Go directly to Twemoji for colored emojis
-            print(f"Creating colored emoji PNG for {emoji_char} using Twemoji...")
+            print(f"Creating Apple emoji PNG for {emoji_char}...")
             
+            # Try to extract Apple Color Emoji bitmap first
+            apple_result = self._extract_apple_emoji(emoji_char, font_size, png_path)
+            if apple_result:
+                print(f"Successfully created Apple emoji PNG for {emoji_char}")
+                return str(png_path)
+            
+            # Fallback to Twemoji for colored emojis
+            print(f"Apple emoji extraction failed for {emoji_char}, trying Twemoji...")
             codepath = self._emoji_to_twemoji_path(emoji_char)
             twemoji_url = f"https://twemoji.maxcdn.com/v/latest/72x72/{codepath}.png"
             
