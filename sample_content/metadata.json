@@ -131,7 +131,7 @@
           }
         },
         "base_settings": {
-          "default_text_type": "plain"
+          "default_text_type": "highlight"
         }
       },
       "settings_level": "default"
