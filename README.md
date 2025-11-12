@@ -89,6 +89,7 @@ The interface lets you:
 - Browse metadata and products
 - Preview image selections
 - Adjust settings via templates and product/content overrides
+- Multi-caption preview (“||” support or add extra lines in the UI)
 
 Launch it using the manager (handles arguments for you):
 
@@ -101,6 +102,83 @@ sm.open_interface()
 
 Under the hood this runs Streamlit with the required arguments:
 - `tiktok_slides/interface/main.py` expects `<base_path> <content_types> <products> <separator>`.
+
+---
+
+## Beginner: step-by-step with Streamlit
+Follow these steps exactly on macOS (similar for Linux/Windows).
+
+1) Create and activate a virtual environment
+```bash
+cd /path/to/your/clone
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+```
+
+2) Install requirements
+```bash
+pip install --upgrade pip
+pip install -r tiktok_slides/requirements.txt
+```
+
+3) Prepare your content folder
+- Copy `tiktok_slides/sample_content` somewhere, or use it as-is to test.
+- Ensure it contains:
+  - `captions.csv`
+  - `metadata.json` (auto-generated if missing)
+  - Folders for each content type (e.g. `hook/`, `fact/`, `proof/`, `cta/`) with images (.png/.jpg).
+
+4) Launch the Streamlit app
+```bash
+python -m streamlit run tiktok_slides/interface/main.py -- \
+"tiktok_slides/sample_content" \
+"['hook','fact','proof','cta']" \
+"{'hook': ['all'], 'fact': ['all'], 'proof': ['all'], 'cta': ['all']}" \
+","
+```
+- Tip: If you don’t want to type arguments, you can also do it via Python:
+```python
+from tiktok_slides.main import SlideManager
+sm = SlideManager(log_level="INFO")
+sm.load("tiktok_slides/sample_content", strict=False, separator=",")
+sm.open_interface()
+```
+
+5) Use the UI
+- Top bar: pick content type and image, navigate with Previous/Next.
+- Left column (Data): see image info, warnings and product info.
+- Right column (Settings): tweak default/content/product settings. Use “Preview Settings” to render a preview.
+- Multi-caption:
+  - In Preview Settings, toggle “Multi-caption mode” and enter extra captions (one per line). Or put “||” inside your CSV cell: `First line || Second line`.
+- Save: when you change settings, the app writes them back to `metadata.json`.
+
+6) Generate images
+```python
+from tiktok_slides.main import SlideManager
+sm = SlideManager(log_level="INFO")
+sm.load("tiktok_slides/sample_content", strict=True, separator=",")
+sm.generate(variations=2, allow_all_duplicates=True)
+```
+- Output goes to `sample_content/output/variation{n}/post{m}/{1..N}.png`.
+
+7) Streamlit won’t load? Try this
+- Make sure the venv is active (`which python` should point to `.venv`).
+- Try a different port: `--server.port 8504` and open the “Local URL” printed in the terminal.
+- Hard refresh the browser or use an incognito window.
+- macOS firewall prompt: click “Allow”.
+- If you see package errors:
+  - `pip install -r tiktok_slides/requirements.txt` again inside the venv
+  - If pandas/pillow complain, reinstall them:
+    - `pip install --force-reinstall --no-cache-dir pandas pillow`
+- If validation fails, check the UI “Warnings” and fix folder names, images, or `captions.csv`.
+
+8) CSV editing tips
+- Keep headers as pairs: `product_hook,hook,product_fact,fact,...`
+- Use quotes when your caption has commas:
+  - `"Go to site, press \"Start Quiz\", do 5 tasks"`
+- Multi-caption in one cell: `Line A || Line B`.
+
+That’s it—once the UI shows previews as you expect, run generation and use the exported images.
 
 ---
 
