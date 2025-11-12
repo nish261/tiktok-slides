@@ -725,45 +725,40 @@ class CaptionsHelper:
         captions_path: Path,
         content_types: Set[str],
         products: Dict[str, List[str]],
-        separator: str
+        separator: str,
     ) -> Dict:
-        """Get captions from CSV file and organize by type and product"""
-        
-        # Read file content first
-        with open(captions_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        # Split into lines and process
-        lines = content.strip().split('\n')
-        headers = [h.strip() for h in lines[0].split(separator)]
-        rows = [line.split(separator) for line in lines[1:]]
+        """Get captions using Python's CSV parser (handles quotes and commas correctly)."""
+        rows: List[List[str]] = []
+        # Read CSV with proper quoting support
+        with open(captions_path, "r", encoding="utf-8", newline="") as f:
+            reader = csv.reader(f, delimiter=separator)
+            headers = next(reader)
+            headers = [h.strip() for h in headers]
+            for row in reader:
+                rows.append(row)
 
         # Initialize structure
-        by_type = {
-            content_type: {product: [] for product in products[content_type]}
+        by_type: Dict[str, Dict[str, List[str]]] = {
+            content_type: {product: [] for product in products.get(content_type, [])}
             for content_type in content_types
         }
 
-        # Process each row
+        # Map content/product columns per type
+        product_cols = {
+            ct: [i for i, h in enumerate(headers) if h == f"product_{ct}"]
+            for ct in content_types
+        }
+        content_cols = {
+            ct: [i for i, h in enumerate(headers) if h == ct] for ct in content_types
+        }
+
         for row in rows:
-            # For each content type
-            for content_type in content_types:
-                try:
-                    # Find all occurrences of product/content pairs for this type
-                    product_indices = [i for i, h in enumerate(headers) if h == f"product_{content_type}"]
-                    content_indices = [i for i, h in enumerate(headers) if h == content_type]
-                    
-                    # Process each pair of indices
-                    for product_idx, content_idx in zip(product_indices, content_indices):
-                        if product_idx < len(row) and content_idx < len(row):
-                            product = row[product_idx].strip()
-                            content = row[content_idx].strip()
-                            
-                            if product and content:  # Only add if both exist
-                                if product in products[content_type]:
-                                    if product not in by_type[content_type]:
-                                        by_type[content_type][product] = []
-                                    by_type[content_type][product].append(content)
-                except (ValueError, IndexError):
-                    continue
+            for ct in content_types:
+                for p_idx, c_idx in zip(product_cols.get(ct, []), content_cols.get(ct, [])):
+                    if p_idx < len(row) and c_idx < len(row):
+                        product = (row[p_idx] or "").strip()
+                        content = (row[c_idx] or "").strip()
+                        if product and content and product in by_type.get(ct, {}):
+                            by_type[ct][product].append(content)
 
         return {"headers": headers, "captions": rows, "by_type": by_type}

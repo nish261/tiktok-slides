@@ -12,7 +12,7 @@
         {"text": "#FFFFFF", "outline": "#000000"}
       ],
       "position": {
-        "vertical": [0.7, 0.8],
+        "vertical": [0.45, 0.55],
         "horizontal": [0.45, 0.55],
         "vertical_jitter": 0.01,
         "horizontal_jitter": 0.02
@@ -33,7 +33,7 @@
         {"text": "#000000", "background": "#FFFFFF"}
       ],
       "position": {
-        "vertical": [0.7, 0.8],
+        "vertical": [0.45, 0.55],
         "horizontal": [0.45, 0.55],
         "vertical_jitter": 0.01,
         "horizontal_jitter": 0.02

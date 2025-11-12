@@ -1601,6 +1601,27 @@ class InterfaceSettingsManager:
                 # Get available captions with safety checks
                 captions = self.get_available_captions(content_type, product, captions_data)
                 
+                # Multi-caption UI (uses '||' delimiter supported by renderer)
+                st.divider()
+                col_a, col_b = st.columns([1, 2])
+                with col_a:
+                    use_multi = st.checkbox(
+                        "Multi-caption mode",
+                        value=False,
+                        help="Render multiple captions on the image. Each line below becomes an extra caption."
+                    )
+                with col_b:
+                    extra_captions_text = st.text_area(
+                        "Extra captions (one per line)",
+                        value="",
+                        height=90,
+                        disabled=not use_multi,
+                        help="Example:\nTop right note\nBottom note"
+                    )
+                extra_parts = []
+                if use_multi and extra_captions_text:
+                    extra_parts = [ln.strip() for ln in extra_captions_text.splitlines() if ln.strip()]
+                
                 # Initialize caption selection if needed
                 if "selected_caption_idx" not in st.session_state:
                     st.session_state.selected_caption_idx = 0
@@ -1622,6 +1643,11 @@ class InterfaceSettingsManager:
                             try:
                                 # Get selected caption
                                 selected_caption = captions[st.session_state.selected_caption_idx]
+                                
+                                # Merge with multi-caption parts using '||'
+                                if extra_parts:
+                                    merged = [selected_caption] + extra_parts
+                                    selected_caption = " || ".join(merged)
                                 
                                 # Get current image path
                                 image_path = self.base_path / st.session_state.content_type / current_image

@@ -24,7 +24,8 @@ class TopBarManager:
         if "content_type" not in st.session_state:
             st.session_state.content_type = self.content_types[0]
         if "selected_image" not in st.session_state:
-            st.session_state.selected_image = self.metadata["structure"][st.session_state.content_type]["images"][0]
+            images = self.metadata_data["structure"][st.session_state.content_type]["images"]
+            st.session_state.selected_image = images[0] if images else None
         if "nav_index" not in st.session_state:
             st.session_state.nav_index = 0
         if "top_bar_message" not in st.session_state:
@@ -139,7 +140,7 @@ class TopBarManager:
 
     def prev_image(self):
         """Move to previous image in current content type"""
-        images = self.metadata["structure"][st.session_state.content_type]["images"]
+        images = self.metadata_data["structure"][st.session_state.content_type]["images"]
         if not images:
             return
         
@@ -148,7 +149,7 @@ class TopBarManager:
 
     def next_image(self):
         """Move to next image in current content type"""
-        images = self.metadata["structure"][st.session_state.content_type]["images"]
+        images = self.metadata_data["structure"][st.session_state.content_type]["images"]
         if not images:
             return
         
@@ -162,7 +163,7 @@ class TopBarManager:
         
         # Get image metadata directly from images
         image_name = st.session_state.selected_image
-        image_data = self.metadata["images"].get(image_name, {})
+        image_data = self.metadata_data["images"].get(image_name, {})
         
         # Return settings source or default if not found
         return image_data.get("settings_source", "default")

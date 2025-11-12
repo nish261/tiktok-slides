@@ -11,6 +11,10 @@ import subprocess
 import sys
 from pathlib import Path
 import ast
+# Ensure project root is on sys.path so local imports work when run via Streamlit
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 from content_manager.metadata.metadata import Metadata
 from content_manager.settings.settings_handler import Settings
 from interface.components.data_manager import DataManager

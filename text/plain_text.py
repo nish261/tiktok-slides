@@ -162,9 +162,14 @@ def draw_plain_image(
                     segment_width = bbox[2] - bbox[0]
                     current_x += segment_width
             else:
-                # No emojis, use regular text rendering
+                # No emojis, draw outline first (if any), then main text
+                if scaled_outline_width > 0:
+                    for adj_x in range(-scaled_outline_width, scaled_outline_width + 1):
+                        for adj_y in range(-scaled_outline_width, scaled_outline_width + 1):
+                            if adj_x != 0 or adj_y != 0:
+                                draw.text((line_x + adj_x, line_y + adj_y), line, font=text_font, fill=outline_color)
                 draw.text((line_x, line_y), line, font=text_font, fill=text_color)
-                print(f"PLAIN // Rendered plain text: {line[:50]}...")
+                print(f"PLAIN // Rendered plain text with outline: {line[:50]}...")
             
         except Exception as e:
             print(f"PLAIN // Apple emoji extraction failed: {e}, using Pilmoji fallback")

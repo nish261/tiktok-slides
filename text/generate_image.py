@@ -132,4 +132,64 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     # Merge settings and render
     renderer = TEXT_RENDERERS[text_type]
     final_settings = {**common_settings, **style_settings}
-    return renderer(**final_settings)
+    
+    # NEW: Multi-caption support using '||' delimiter.
+    # Example: "Top caption || Bottom caption"
+    # Renders multiple captions at evenly spaced vertical anchors.
+    parts = [p.strip() for p in text.split("||")] if "||" in text else [text]
+    if len(parts) == 1:
+        return renderer(**final_settings)
+    
+    # Render multiple captions: compute anchor positions across usable area
+    n = len(parts)
+    # Use margins to avoid drawing into edges
+    top_margin_ratio = calculated_margins["top"] / height if height > 0 else 0.05
+    bottom_margin_ratio = calculated_margins["bottom"] / height if height > 0 else 0.05
+    usable_top = max(top_margin_ratio, 0.05)
+    usable_bottom = 1.0 - max(bottom_margin_ratio, 0.05)
+    # Evenly spaced anchors between usable_top..usable_bottom
+    anchors = [
+        usable_top + (i + 1) * (usable_bottom - usable_top) / (n + 1)
+        for i in range(n)
+    ]
+    
+    # Sequentially render each caption onto the same image
+    img = image
+    for idx, part in enumerate(parts):
+        local_settings = dict(final_settings)
+        local_settings["image"] = img
+        local_settings["text"] = part
+        local_settings["height_center_position"] = anchors[idx]
+        img = renderer(**local_settings)
+    
+    return img
+    # NEW: Multi-caption support using '||' delimiter.
+    # Example: "Top caption || Bottom caption"
+    # Renders multiple captions at evenly spaced vertical anchors.
+    parts = [p.strip() for p in text.split("||")] if "||" in text else [text]
+    if len(parts) == 1:
+        return renderer(**final_settings)
+    
+    # Render multiple captions: compute anchor positions across usable area
+    n = len(parts)
+    # Use margins to avoid drawing into edges
+    top_margin_ratio = calculated_margins["top"] / height if height > 0 else 0.05
+    bottom_margin_ratio = calculated_margins["bottom"] / height if height > 0 else 0.05
+    usable_top = max(top_margin_ratio, 0.05)
+    usable_bottom = 1.0 - max(bottom_margin_ratio, 0.05)
+    # Evenly spaced anchors between usable_top..usable_bottom
+    anchors = [
+        usable_top + (i + 1) * (usable_bottom - usable_top) / (n + 1)
+        for i in range(n)
+    ]
+    
+    # Sequentially render each caption onto the same image
+    img = image
+    for idx, part in enumerate(parts):
+        local_settings = dict(final_settings)
+        local_settings["image"] = img
+        local_settings["text"] = part
+        local_settings["height_center_position"] = anchors[idx]
+        img = renderer(**local_settings)
+    
+    return img
