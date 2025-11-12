@@ -182,6 +182,150 @@ That’s it—once the UI shows previews as you expect, run generation and use t
 
 ---
 
+## Complete beginner walkthrough (from zero to first images)
+This section assumes you’ve never used Python or Streamlit before. Follow it exactly.
+
+### 0) Install Python
+- macOS: Install “Python 3.11 or 3.12” from `https://www.python.org/downloads/`
+- Windows: Same link; during install, tick “Add Python to PATH”.
+
+### 1) Download this project
+- Easiest: Click “Code → Download ZIP” on GitHub, unzip it (you get a folder like `tiktok_slides/` on your Desktop).
+- Or, if you use git:
+```bash
+git clone https://github.com/nish261/tiktok-slides.git
+cd tiktok-slides
+```
+
+### 2) Create and activate a virtual environment
+Open Terminal (macOS) or PowerShell (Windows), then:
+```bash
+cd /path/to/tiktok-slides   # change to the folder you downloaded/cloned
+python -m venv .venv
+# macOS/Linux:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\Activate
+```
+You’ll know it worked if your prompt shows `(.venv)` at the left.
+
+### 3) Install all required packages
+```bash
+pip install --upgrade pip
+pip install -r tiktok_slides/requirements.txt
+```
+If this errors, run the same commands again while the venv is active.
+
+### 4) Open the sample content (so you can see it working)
+We ship a working example at `tiktok_slides/sample_content/`. You can use it as-is to learn.
+
+Your folder should contain (already included):
+```
+tiktok_slides/sample_content/
+  captions.csv
+  metadata.json (auto-generated if missing)
+  hook/ ...images...
+  fact/ ...images...
+  proof/ ...images...
+  cta/ ...images...
+```
+
+### 5) Launch the Streamlit app (the simplest way)
+We’ll let Python pass the right settings for you:
+```bash
+python - <<'PY'
+from tiktok_slides.main import SlideManager
+sm = SlideManager(log_level="INFO")
+sm.load("tiktok_slides/sample_content", strict=False, separator=",")
+sm.open_interface()
+PY
+```
+This starts the app and prints a “Local URL” (usually `http://localhost:8501`). Click it to open in your browser.
+
+If you prefer the command-line way:
+```bash
+python -m streamlit run tiktok_slides/interface/main.py -- \
+"tiktok_slides/sample_content" \
+"['hook','fact','proof','cta']" \
+"{'hook': ['all'], 'fact': ['all'], 'proof': ['all'], 'cta': ['all']}" \
+","
+```
+If port 8501 is busy, add `--server.port 8504` and open that URL instead.
+
+### 6) Learn the app (exact, click-by-click)
+- Top bar:
+  - “Content Type Selection” lets you switch folders (hook/fact/proof/cta).
+  - “Image Selection” lets you choose which image to preview.
+  - Use Previous/Next buttons to browse.
+- Left column (“Data”):
+  - Shows the selected image details, size, and any warnings (e.g., “image has no product assigned”).
+- Right column (“Settings”):
+  - “Preview Settings” (scroll if needed) lets you generate an on-screen preview.
+  - “Multi-caption mode”: tick it to add extra lines of text. Enter one extra caption per line. We’ll place them evenly on the image.
+  - Choose the text style in your settings: default is “plain” with white text, black outline. The “highlight” style draws a rounded rectangle behind text.
+  - When you change settings, they’re saved to `sample_content/metadata.json` so generation uses the same look.
+
+Notes:
+- You can also do multi-line captions in your CSV by putting “||” inside a cell:
+  - Example: `This is the main line || This is the second line`
+  - We will render both lines, spaced top-to-bottom.
+- If you see a warning about products (like `'all'`), it means the image wasn’t tagged. We auto-tag to `'all'` in the sample.
+
+### 7) Generate real images to disk
+When you’re happy with previews, generate actual posts:
+```bash
+python - <<'PY'
+from tiktok_slides.main import SlideManager
+sm = SlideManager(log_level="INFO")
+sm.load("tiktok_slides/sample_content", strict=True, separator=",")
+# variations is “how many sets” you want; each set contains one image for every text column in CSV
+sm.generate(variations=2, allow_all_duplicates=True)
+print("Done. See tiktok_slides/sample_content/output")
+PY
+```
+Look in:
+```
+tiktok_slides/sample_content/output/
+  variation1/post1/1.png..N.png
+  variation1/post2/...
+  variation2/...
+```
+
+### 8) Replace the sample with your own content
+1. Copy `tiktok_slides/sample_content` to a new folder (e.g., `my_content/`).
+2. Replace the images inside `hook/`, `fact/`, `proof/`, `cta/` with yours (.png/.jpg).
+3. Edit `captions.csv`:
+   - Keep headers in pairs: `product_hook,hook,product_fact,fact,...`
+   - Put `all` in each `product_*` column (simplest) or use specific product names if you configure them in `metadata.json`.
+   - If a caption contains commas, wrap it in quotes:
+     - `"Go to site, press \"Start Quiz\", do 5 tasks"`
+   - Multi-caption in one cell: `Line 1 || Line 2`.
+4. Launch Streamlit again and generate.
+
+### 9) Common problems and fixes
+- Browser says “refused to connect”:
+  - Try a different port: add `--server.port 8504` to the Streamlit command.
+  - Hard-refresh the page (Cmd/Ctrl+Shift+R) or use an incognito window.
+  - macOS firewall pop-up? Click “Allow”.
+- “Validation failed” on generation:
+  - Open the app; check the left column “Warnings” and fix files/headers.
+  - Ensure your content folders exactly match headers (e.g., `hook/`, `fact/`, etc.).
+- CSV with commas:
+  - Use quotes around the whole caption; we parse it correctly with Python’s CSV reader.
+- Missing fonts or pillow/pandas errors:
+  - `pip install --force-reinstall --no-cache-dir pillow pandas`
+
+### 10) Where to change the default look (font, outline, margins)
+- Template file: `tiktok_slides/assets/templates/default.json`
+  - `base_settings.default_text_type`: `"plain"` or `"highlight"`
+  - For `plain`: set `style_value` (outline width), `colors` (text/outline), `margins`, `position`.
+  - For `highlight`: set `corner_radius`, `colors` (text/background), and the same `margins`/`position`.
+- Image-level overrides can live in `sample_content/metadata.json` (but to keep everything consistent, prefer the default template).
+
+That’s the full “from zero to done” flow. If you get stuck, copy-paste the exact error from your Terminal and we’ll fix it.
+
+---
+
 ## Output structure
 By default, images are saved under your content folder:
 
