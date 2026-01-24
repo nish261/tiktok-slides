@@ -149,35 +149,42 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
         local_settings["image"] = img
         local_settings["text"] = part
         
-        if idx == 0:
-            # FIRST caption (main) - uses the original calculated position
-            # Already set in final_settings
-            pass
-        else:
-            # EXTRA captions - use extra_caption_settings if available
-            # VERTICAL POSITION
-            if extra_settings and extra_settings.get("vertical_position"):
-                v_pos_extra = extra_settings["vertical_position"]
-                if isinstance(v_pos_extra, list) and len(v_pos_extra) >= 2:
-                    v_pos_val = random.uniform(v_pos_extra[0], v_pos_extra[1])
-                else:
-                    v_pos_val = v_pos_extra[0] if isinstance(v_pos_extra, list) else float(v_pos_extra)
-                local_settings["height_center_position"] = v_pos_val
-            else:
-                # Fallback: position at 0.65 (lower portion of image)
-                local_settings["height_center_position"] = 0.65
+        if idx > 0 and extra_settings:
+            # === EXTRA CAPTION HANDLING ===
+            # We treat this exactly like a standard separate caption
             
-            # HORIZONTAL POSITION
-            if extra_settings and extra_settings.get("horizontal_position"):
-                h_pos_extra = extra_settings["horizontal_position"]
-                if isinstance(h_pos_extra, list) and len(h_pos_extra) >= 2:
-                    h_pos_val = random.uniform(h_pos_extra[0], h_pos_extra[1])
+            # 1. Vertical Position
+            if "vertical_position" in extra_settings:
+                v_data = extra_settings["vertical_position"]
+                v_jitter = extra_settings.get("vertical_jitter", 0.0)
+                
+                # Handle range or single value
+                if isinstance(v_data, (list, tuple)) and len(v_data) >= 2:
+                    v_pos = random.uniform(v_data[0], v_data[1])
                 else:
-                    h_pos_val = h_pos_extra[0] if isinstance(h_pos_extra, list) else float(h_pos_extra)
-                local_settings["width_center_position"] = h_pos_val
+                    v_pos = float(v_data) if not isinstance(v_data, (list, tuple)) else v_data[0]
+                
+                # Apply jitter
+                v_jitter_val = random.uniform(-v_jitter, v_jitter)
+                local_settings["height_center_position"] = v_pos + v_jitter_val
+
+            # 2. Horizontal Position
+            if "horizontal_position" in extra_settings:
+                h_data = extra_settings["horizontal_position"]
+                h_jitter = extra_settings.get("horizontal_jitter", 0.0)
+                
+                # Handle range or single value
+                if isinstance(h_data, (list, tuple)) and len(h_data) >= 2:
+                    h_pos = random.uniform(h_data[0], h_data[1])
+                else:
+                    h_pos = float(h_data) if not isinstance(h_data, (list, tuple)) else h_data[0]
+                
+                # Apply jitter
+                h_jitter_val = random.uniform(-h_jitter, h_jitter)
+                local_settings["width_center_position"] = h_pos + h_jitter_val
             else:
-                # Fallback: position at center 0.5
-                # CRITICAL: Do NOT use main caption's X position (width_center_position)
+                # If no horizontal position specified for extra, default to 0.5 (Center)
+                # Do NOT inherit from main caption
                 local_settings["width_center_position"] = 0.5
         
         img = renderer(**local_settings)
