@@ -71,9 +71,11 @@ def draw_wrapped_text(
 
     # Store the line info for drawing
     line_info = []
-    x, y = position
-    
     # Calculate positions
+    # Direct mapping for Top-Left anchor
+    anchor_x, anchor_y = position
+    y = anchor_y
+    
     for line in lines:
         if not line:  # Empty line
             y += font.size // 2  # Add small space for empty line
@@ -96,8 +98,8 @@ def draw_wrapped_text(
         bbox = font.getbbox(line)
         line_height = bbox[3] - bbox[1]
 
-        # Center horizontally
-        x = (width - line_width) // 2
+        # Use Left Anchor directly (no centering subtraction)
+        x = anchor_x
 
         # Store drawing info
         highlight_offset = 5

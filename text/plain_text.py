@@ -90,14 +90,23 @@ def draw_plain_image(
     total_height = len(lines) * line_spacing
 
     # Calculate y position with scaling
-    y = int(scaled_height * (1 - height_center_position) - total_height/2)
-    y = max(
-        scaled_margins["top"],
-        min(
-            scaled_height - scaled_margins["bottom"] - total_height,
-            y
-        )
-    )
+    # OLD: y = int(scaled_height * (1 - height_center_position) - total_height/2)
+    # NEW: Direct mapping. 0.0 = Top, 1.0 = Bottom.
+    # Anchor is Top-Left, so y corresponds to the top of the text block.
+    y = int(scaled_height * height_center_position)
+    
+    # Ensure it stays somewhat within image bounds but allow more freedom
+    # Use margins as hard limits for the TEXT BLOCK, not the center
+    # y = max(scaled_margins["top"], min(scaled_height - scaled_margins["bottom"] - total_height, y))
+    
+    # Calculate x position with scaling
+    # OLD: x = int(scaled_width * (1 - width_center_position) - max_width/2) (or similar)
+    # NEW: Direct mapping. Anchor is Left.
+    x = int(scaled_width * width_center_position)
+    
+    # Initial position
+    current_y = y
+
 
     # Draw text at higher resolution using Pilmoji
     for i, line in enumerate(lines):
@@ -105,8 +114,9 @@ def draw_plain_image(
         bbox = draw.textbbox((0, 0), line, font=text_font)
         total_width = bbox[2] - bbox[0]
         
-        x = int(scaled_width * width_center_position)
-        line_x = x - (total_width // 2)
+        # OLD: line_x = x - (total_width // 2) (Centered)
+        # NEW: line_x = x (Left Aligned to the anchor point)
+        line_x = x
         line_y = y + (i * line_spacing)
 
         # Use Apple emoji extraction first, then fallback to Pilmoji
