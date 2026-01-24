@@ -85,7 +85,14 @@ class ImageManager:
             if st.session_state.get("click_position_mode", False) and HAS_IMAGE_COORDINATES:
                 # Load image and get dimensions
                 img = Image.open(str(image_path))
-                img_width, img_height = img.size
+                orig_width, orig_height = img.size
+                
+                # Resize image to fit container while maintaining aspect ratio
+                # This fixes the zoom issue
+                display_width = 400  # Fixed width for clickable display
+                aspect_ratio = orig_height / orig_width
+                display_height = int(display_width * aspect_ratio)
+                img_resized = img.resize((display_width, display_height), Image.Resampling.LANCZOS)
                 
                 # Which caption are we positioning?
                 target_caption = st.session_state.get("position_target", "main")
@@ -94,16 +101,17 @@ class ImageManager:
                 else:
                     st.info("👆 **Click to set EXTRA CAPTION position** (Caption 2)")
                 
-                # Display clickable image
+                # Display clickable image at proper size
                 coords = streamlit_image_coordinates(
-                    img,
+                    img_resized,
                     key=f"position_picker_{target_caption}"
                 )
                 
                 # If clicked, calculate normalized position with high precision
+                # Note: coords are relative to the resized image, so normalize directly
                 if coords is not None:
-                    x_norm = round(coords["x"] / img_width, 4)
-                    y_norm = round(coords["y"] / img_height, 4)
+                    x_norm = round(coords["x"] / display_width, 4)
+                    y_norm = round(coords["y"] / display_height, 4)
                     
                     # Store the clicked position with target info
                     st.session_state.clicked_position = {
@@ -111,13 +119,13 @@ class ImageManager:
                         "y": y_norm,
                         "raw_x": coords["x"],
                         "raw_y": coords["y"],
-                        "img_width": img_width,
-                        "img_height": img_height,
+                        "img_width": orig_width,
+                        "img_height": orig_height,
                         "target": target_caption
                     }
                     
                     st.success(f"📍 **{target_caption.upper()}** position: X={x_norm:.4f}, Y={y_norm:.4f}")
-                    st.caption(f"Pixel: ({coords['x']}, {coords['y']}) of ({img_width}x{img_height})")
+                    st.caption(f"Click: ({coords['x']}, {coords['y']}) → Original: ({int(x_norm * orig_width)}, {int(y_norm * orig_height)}) of {orig_width}x{orig_height}")
                 
                 # Show Apply button
                 col1, col2 = st.columns(2)
