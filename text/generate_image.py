@@ -135,31 +135,52 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     
     # NEW: Multi-caption support using '||' delimiter.
     # Example: "Top caption || Bottom caption"
-    # Renders multiple captions at evenly spaced vertical anchors.
+    # Renders multiple captions with separate positions for each.
     parts = [p.strip() for p in text.split("||")] if "||" in text else [text]
     if len(parts) == 1:
         return renderer(**final_settings)
     
-    # Render multiple captions: compute anchor positions across usable area
-    n = len(parts)
-    # Use margins to avoid drawing into edges
-    top_margin_ratio = calculated_margins["top"] / height if height > 0 else 0.05
-    bottom_margin_ratio = calculated_margins["bottom"] / height if height > 0 else 0.05
-    usable_top = max(top_margin_ratio, 0.05)
-    usable_bottom = 1.0 - max(bottom_margin_ratio, 0.05)
-    # Evenly spaced anchors between usable_top..usable_bottom
-    anchors = [
-        usable_top + (i + 1) * (usable_bottom - usable_top) / (n + 1)
-        for i in range(n)
-    ]
+    # Render multiple captions with separate positions
+    # Try to get extra caption settings from streamlit session state
+    extra_settings = None
+    try:
+        import streamlit as st
+        extra_settings = st.session_state.get("extra_caption_settings", None)
+    except:
+        pass
     
-    # Sequentially render each caption onto the same image
     img = image
     for idx, part in enumerate(parts):
         local_settings = dict(final_settings)
         local_settings["image"] = img
         local_settings["text"] = part
-        local_settings["height_center_position"] = anchors[idx]
+        
+        if idx == 0:
+            # FIRST caption (main) - uses the original calculated position
+            # Already set in final_settings
+            pass
+        else:
+            # EXTRA captions - use extra_caption_settings if available
+            if extra_settings and extra_settings.get("vertical_position"):
+                v_pos_extra = extra_settings["vertical_position"]
+                if isinstance(v_pos_extra, list) and len(v_pos_extra) >= 2:
+                    v_pos_val = random.uniform(v_pos_extra[0], v_pos_extra[1])
+                else:
+                    v_pos_val = v_pos_extra[0] if isinstance(v_pos_extra, list) else float(v_pos_extra)
+                local_settings["height_center_position"] = v_pos_val
+            else:
+                # Fallback: position at 0.65 (lower portion of image)
+                local_settings["height_center_position"] = 0.65
+            
+            if extra_settings and extra_settings.get("horizontal_position"):
+                h_pos_extra = extra_settings["horizontal_position"]
+                if isinstance(h_pos_extra, list) and len(h_pos_extra) >= 2:
+                    h_pos_val = random.uniform(h_pos_extra[0], h_pos_extra[1])
+                else:
+                    h_pos_val = h_pos_extra[0] if isinstance(h_pos_extra, list) else float(h_pos_extra)
+                local_settings["width_center_position"] = h_pos_val
+            # else: keep same X as main caption (original behavior)
+        
         img = renderer(**local_settings)
     
     return img
