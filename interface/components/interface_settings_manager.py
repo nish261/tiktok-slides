@@ -1750,7 +1750,6 @@ class InterfaceSettingsManager:
                     with st.spinner("Generating slides..."):
                         try:
                             from generation.generate import Generator
-                            from content_manager.captions import CaptionsHelper
 
                             # Load captions
                             captions_data = CaptionsHelper.get_captions(
