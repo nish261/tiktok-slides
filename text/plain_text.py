@@ -122,27 +122,28 @@ def draw_plain_image(
                 
                 for segment, is_emoji in segments:
                     if is_emoji:
-                        # Render emoji as PNG overlay using Apple extraction
+                        # Render EACH emoji character separately
                         from .emoji_renderer_simple import simple_emoji_renderer
-                        emoji_size = int(scaled_font_size * 1.2)  # Slightly larger than text
+                        emoji_size = int(scaled_font_size * 1.1)  # Match text size closely
                         
-                        # Calculate position for emoji (center aligned with text)
-                        emoji_y = int(line_y) - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                        
-                        try:
-                            # Use the simple renderer to overlay the emoji
-                            text_layer = simple_emoji_renderer.render_emoji_overlay(
-                                text_layer, segment, emoji_size, (int(current_x), emoji_y)
-                            )
-                            print(f"PLAIN // Successfully rendered Apple emoji PNG for {segment}")
+                        # Each character in the segment is an emoji that needs to be rendered
+                        for emoji_char in segment:
+                            # Calculate position for emoji (center aligned with text)
+                            emoji_y = int(line_y) + int((scaled_font_size - emoji_size) / 2)
                             
-                            # Advance position by emoji width
-                            current_x += emoji_size
-                            continue
-                        except Exception as e2:
-                            print(f"PLAIN // Failed to render Apple emoji PNG {segment}: {e2}")
-                            # Fallback to text rendering
-                            font = emoji_font
+                            try:
+                                # Use the simple renderer to overlay the emoji
+                                text_layer = simple_emoji_renderer.render_emoji_overlay(
+                                    text_layer, emoji_char, emoji_size, (int(current_x), emoji_y)
+                                )
+                                print(f"PLAIN // Successfully rendered emoji PNG for {emoji_char}")
+                                
+                                # Advance position by emoji width
+                                current_x += emoji_size
+                            except Exception as e2:
+                                print(f"PLAIN // Failed to render emoji PNG {emoji_char}: {e2}")
+                                # Skip this emoji on failure
+                        continue # Continue to the next segment after processing all emoji_chars
                     else:
                         # Use text font for regular text
                         font = text_font

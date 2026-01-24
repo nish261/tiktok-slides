@@ -1540,21 +1540,33 @@ class InterfaceSettingsManager:
         
         Args:
             content_type: Type of content (hook, content, cta)
-            product: Product name for the image
+            product: Product name for the image (can be None)
             captions_data: Loaded captions data from CaptionsHelper
             
         Returns:
             List of available captions based on product rules
         """
+        # Treat None/null products as 'all' by default
+        effective_product = product if product else 'all'
+        
         # Get product settings from metadata
         product_settings = next(
             (p for p in self.metadata_data['products'][content_type] 
-            if p['name'] == product),
+            if p['name'] == effective_product),
             None
         )
         
+        # If still no product settings found, try 'all' as fallback
+        if not product_settings and effective_product != 'all':
+            product_settings = next(
+                (p for p in self.metadata_data['products'][content_type] 
+                if p['name'] == 'all'),
+                None
+            )
+            effective_product = 'all'
+        
         if not product_settings:
-            st.session_state.top_bar_message = f"Product is '{product}'. If None, no captions :("
+            st.session_state.top_bar_message = f"No product settings found for '{effective_product}' in {content_type}"
             st.session_state.top_bar_message_type = "warning"
             return []
         
@@ -1563,10 +1575,10 @@ class InterfaceSettingsManager:
         
         if prevent_duplicates:
             # Only show captions for this specific product
-            captions.extend(captions_data['by_type'][content_type].get(product, []))
-        elif product != 'all':
+            captions.extend(captions_data['by_type'][content_type].get(effective_product, []))
+        elif effective_product != 'all':
             # Show this product's captions
-            captions.extend(captions_data['by_type'][content_type].get(product, []))
+            captions.extend(captions_data['by_type'][content_type].get(effective_product, []))
         else:
             # Product is 'all' and duplicates allowed - show all captions except from prevent_duplicate products
             for prod, prod_captions in captions_data['by_type'][content_type].items():

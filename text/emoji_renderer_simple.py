@@ -50,11 +50,14 @@ class SimpleEmojiRenderer:
             if not os.path.exists(apple_font_path):
                 return False
             
-            # Load Apple Color Emoji at its native size (20)
-            font = ImageFont.truetype(apple_font_path, 20)
+            # Load Apple Color Emoji at a LARGER size for better quality
+            # Apple Color Emoji has bitmaps at sizes like 20, 32, 40, 48, 64, 96, 160
+            # Use 160 so we scale DOWN (not up) for crisp results
+            native_size = 160
+            font = ImageFont.truetype(apple_font_path, native_size)
             
-            # Create a larger temporary image for better quality
-            temp_size = max(256, font_size * 4)
+            # Create temporary image sized for the native emoji
+            temp_size = native_size * 2
             temp_img = Image.new('RGBA', (temp_size, temp_size), (0, 0, 0, 0))
             draw = ImageDraw.Draw(temp_img)
             
@@ -76,7 +79,7 @@ class SimpleEmojiRenderer:
                 # Crop to content
                 cropped = temp_img.crop(bbox)
                 
-                # Resize to target size with high quality
+                # Resize to target size - LANCZOS is great for downscaling
                 final_img = cropped.resize((font_size, font_size), Image.Resampling.LANCZOS)
                 
                 # Save as PNG
@@ -87,7 +90,8 @@ class SimpleEmojiRenderer:
             
         except Exception as e:
             print(f"Apple emoji extraction failed for {emoji_char}: {e}")
-            return False 
+            return False
+        
         
     def get_emoji_png_path(self, emoji_char: str, font_size: int = 100) -> Optional[str]:
         """Get PNG file path for emoji, creating it if needed"""
@@ -105,26 +109,18 @@ class SimpleEmojiRenderer:
         return self._create_emoji_png(emoji_char, font_size, png_path)
     
     def _create_emoji_png(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
-        """Create emoji PNG using Apple Color Emoji extraction for authentic Apple emojis"""
+        """Create emoji PNG - prioritize Twemoji for high quality, Apple as fallback"""
         try:
-            print(f"Creating Apple emoji PNG for {emoji_char}...")
+            print(f"Creating emoji PNG for {emoji_char}...")
             
-            # Try to extract Apple Color Emoji bitmap first
-            apple_result = self._extract_apple_emoji(emoji_char, font_size, png_path)
-            if apple_result:
-                print(f"Successfully created Apple emoji PNG for {emoji_char}")
-                return str(png_path)
-            
-            # Fallback to Twemoji for colored emojis
-            print(f"Apple emoji extraction failed for {emoji_char}, trying Twemoji...")
+            # PRIORITY 1: Try Twemoji first (high-res 72x72 PNGs, looks great when scaled)
             codepath = self._emoji_to_twemoji_path(emoji_char)
-            twemoji_url = f"https://twemoji.maxcdn.com/v/latest/72x72/{codepath}.png"
+            twemoji_url = f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepath}.png"
             
-            # temp download path
             tmp_dl = png_path.with_suffix(".twemoji.tmp")
             ok = self._download_url(twemoji_url, tmp_dl)
             if ok:
-                # open and resize to desired font_size
+                # Open and resize to desired font_size
                 img = Image.open(tmp_dl).convert("RGBA")
                 final_img = img.resize((font_size, font_size), Image.Resampling.LANCZOS)
                 final_img.save(png_path, "PNG")
@@ -132,12 +128,20 @@ class SimpleEmojiRenderer:
                     tmp_dl.unlink()
                 except Exception:
                     pass
-                print(f"Successfully created colored emoji PNG using Twemoji for {emoji_char}")
+                print(f"Successfully created Twemoji PNG for {emoji_char}")
                 return str(png_path)
-            else:
-                print(f"Twemoji download failed for {emoji_char}, trying fallback...")
-                # Fallback to system font (monochrome)
-                return self._create_monochrome_emoji(emoji_char, font_size, png_path)
+            
+            print(f"Twemoji download failed for {emoji_char}, trying Apple extraction...")
+            
+            # PRIORITY 2: Fallback to Apple extraction (lower quality but works offline)
+            apple_result = self._extract_apple_emoji(emoji_char, font_size, png_path)
+            if apple_result:
+                print(f"Successfully created Apple emoji PNG for {emoji_char}")
+                return str(png_path)
+            
+            # PRIORITY 3: Final fallback to monochrome
+            print(f"Apple emoji extraction failed, trying monochrome fallback...")
+            return self._create_monochrome_emoji(emoji_char, font_size, png_path)
                 
         except Exception as e:
             print(f"Failed to create emoji PNG for {emoji_char}: {e}")

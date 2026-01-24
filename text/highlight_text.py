@@ -133,34 +133,31 @@ def draw_wrapped_text(
                     
                     for segment, is_emoji in segments:
                         if is_emoji:
-                            # Render emoji as PNG overlay using Apple extraction
+                            # Render EACH emoji character separately
                             from .emoji_renderer_simple import simple_emoji_renderer
-                            emoji_size = int(font.size * 1.2)  # Slightly larger than text
+                            emoji_size = int(font.size * 1.1)  # Match text size closely
                             
-                            print(f"HIGHLIGHT // Attempting Apple emoji PNG overlay for: {segment}")
-                            
-                            # Calculate position for emoji (center aligned with text)
-                            emoji_y = int(line_data["y"]) - int(emoji_size * 0.1)  # Slight adjustment for visual alignment
-                            
-                            if base_image is not None:
-                                try:
-                                    # Use the simple renderer to overlay the emoji
-                                    base_image = simple_emoji_renderer.render_emoji_overlay(
-                                        base_image, segment, emoji_size, (int(current_x), emoji_y)
-                                    )
-                                    print(f"HIGHLIGHT // Successfully rendered Apple emoji PNG for {segment}")
-                                    
-                                    # Advance position by emoji width
-                                    current_x += emoji_size
-                                    continue
-                                except Exception as e2:
-                                    print(f"HIGHLIGHT // Failed to render Apple emoji PNG {segment}: {e2}")
-                                    # Fallback to text rendering
-                                    segment_font = emoji_font
-                            else:
-                                print(f"HIGHLIGHT // base_image is None, using font fallback for {segment}")
-                                # Fallback to text rendering
-                                segment_font = emoji_font
+                            for emoji_char in segment:
+                                print(f"HIGHLIGHT // Rendering emoji: {emoji_char}")
+                                
+                                # Calculate position for emoji (center aligned with text)
+                                emoji_y = int(line_data["y"]) + int((font.size - emoji_size) / 2)
+                                
+                                if base_image is not None:
+                                    try:
+                                        # Use the simple renderer to overlay the emoji
+                                        base_image = simple_emoji_renderer.render_emoji_overlay(
+                                            base_image, emoji_char, emoji_size, (int(current_x), emoji_y)
+                                        )
+                                        print(f"HIGHLIGHT // Successfully rendered emoji PNG for {emoji_char}")
+                                        
+                                        # Advance position by emoji width
+                                        current_x += emoji_size
+                                    except Exception as e2:
+                                        print(f"HIGHLIGHT // Failed to render emoji PNG {emoji_char}: {e2}")
+                                else:
+                                    print(f"HIGHLIGHT // base_image is None, skipping {emoji_char}")
+                            continue  # Continue to next segment after processing all emoji chars
                         else:
                             # Use text font for regular text
                             segment_font = font
