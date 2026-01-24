@@ -38,7 +38,7 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     logger.debug(f"GENERATE IMAGE CALLED WITH TEXT: {text}")
     
     # Get common settings
-    font_path = settings["base_settings"]["font_path"]
+    # font_path access removed as it causes KeyError and is calculated later as resolved_font_path
     text_settings = settings["text_settings"][text_type]
     logger.debug(f"generate image // settings: {settings}")
     image = Image.open(image_path)
