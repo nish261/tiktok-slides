@@ -1656,6 +1656,86 @@ class InterfaceSettingsManager:
                         disabled=not use_multi,
                         help="Example:\nTop right note\nBottom note"
                     )
+                
+                # Separate settings for extra captions
+                use_separate_settings = False
+                extra_caption_settings = {}
+                if use_multi:
+                    use_separate_settings = st.checkbox(
+                        "🎨 Customize extra caption style",
+                        value=st.session_state.get("use_separate_extra_settings", False),
+                        key="use_separate_extra_settings",
+                        help="Apply different font, size, and position to extra captions"
+                    )
+                    
+                    if use_separate_settings:
+                        with st.container():
+                            st.markdown("##### Extra Caption Settings")
+                            
+                            # Get current settings as defaults
+                            current_text_settings = settings_data.get("text_settings", {})
+                            current_type = settings_data.get("base_settings", {}).get("default_text_type", "plain")
+                            base_text_settings = current_text_settings.get(current_type, {})
+                            
+                            col1, col2, col3 = st.columns([3, 2, 2])
+                            
+                            with col1:
+                                # Font selection for extra captions
+                                current_font_name = base_text_settings.get("font", "").split(".")[-2] if base_text_settings.get("font") else "tiktokfont"
+                                extra_font = st.selectbox(
+                                    "Font",
+                                    options=list(self.fonts.keys()),
+                                    index=list(self.fonts.keys()).index(current_font_name) if current_font_name in self.fonts else 0,
+                                    key="extra_caption_font"
+                                )
+                                extra_caption_settings["font"] = self.fonts.get(extra_font, base_text_settings.get("font", ""))
+                            
+                            with col2:
+                                # Font size for extra captions
+                                extra_font_size = st.number_input(
+                                    "Font Size",
+                                    min_value=10,
+                                    max_value=200,
+                                    value=base_text_settings.get("font_size", 50),
+                                    key="extra_caption_font_size"
+                                )
+                                extra_caption_settings["font_size"] = extra_font_size
+                            
+                            with col3:
+                                # Vertical position for extra captions
+                                extra_v_pos = st.number_input(
+                                    "Vertical Pos",
+                                    min_value=0.0,
+                                    max_value=1.0,
+                                    value=0.65,
+                                    step=0.05,
+                                    key="extra_caption_v_pos",
+                                    help="0.0 = top, 1.0 = bottom"
+                                )
+                                extra_caption_settings["vertical_position"] = extra_v_pos
+                            
+                            # Color settings for extra captions
+                            col_text, col_outline = st.columns(2)
+                            with col_text:
+                                extra_text_color = st.color_picker(
+                                    "Text Color",
+                                    value="#FFFFFF",
+                                    key="extra_caption_text_color"
+                                )
+                                extra_caption_settings["text_color"] = extra_text_color
+                            with col_outline:
+                                extra_outline_color = st.color_picker(
+                                    "Outline Color", 
+                                    value="#000000",
+                                    key="extra_caption_outline_color"
+                                )
+                                extra_caption_settings["outline_color"] = extra_outline_color
+                            
+                            st.divider()
+                
+                # Store extra settings in session state for preview generation
+                st.session_state.extra_caption_settings = extra_caption_settings if use_separate_settings else None
+                
                 extra_parts = []
                 if use_multi and extra_captions_text:
                     extra_parts = [ln.strip() for ln in extra_captions_text.splitlines() if ln.strip()]
