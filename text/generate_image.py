@@ -149,8 +149,20 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
         local_settings["image"] = img
         local_settings["text"] = part
         
+        if idx > 0:
+            logger.debug(f"=== EXTRA CAPTION {idx} DEBUG ===")
+            logger.debug(f"extra_settings exists: {extra_settings is not None}")
+            logger.debug(f"extra_settings content: {extra_settings}")
+            logger.debug(f"local_settings width_center_position BEFORE: {local_settings.get('width_center_position')}")
+            logger.debug(f"local_settings height_center_position BEFORE: {local_settings.get('height_center_position')}")
+            logger.debug(f"Settings Source: {settings.get('settings_source', 'unknown')}")
+            
         if idx > 0 and extra_settings:
             # === EXTRA CAPTION HANDLING ===
+            # Explicitly reset positions to defaults to prevent inheriting from Main Caption
+            local_settings["width_center_position"] = 0.5
+            local_settings["height_center_position"] = 0.5
+            
             # We treat this exactly like a standard separate caption
             
             # 1. Vertical Position

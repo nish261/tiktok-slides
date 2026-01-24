@@ -98,12 +98,12 @@
             ],
             "position": {
               "vertical": [
-                0.0744,
-                0.0744
+                0.6095,
+                0.6095
               ],
               "horizontal": [
-                0.04,
-                0.04
+                0.4017,
+                0.4017
               ],
               "vertical_jitter": 0.01,
               "horizontal_jitter": 0.02
