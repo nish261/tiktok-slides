@@ -69,44 +69,87 @@ class ImageManager:
             return
             
         try:
-            # Check if a preview image exists
+            # Determine which image to use
+            # For Caption 2 positioning, ALWAYS use preview if it exists
+            # For Caption 1, can use either
+            target_caption = st.session_state.get("position_target", "main")
+
             if "preview_image_path" in st.session_state:
-                image_path = Path(st.session_state.preview_image_path)
-                if not image_path.exists():
-                    # If preview doesn't exist, fall back to original
+                preview_path = Path(st.session_state.preview_image_path)
+                if preview_path.exists():
+                    image_path = preview_path
+                    logger.debug(f"Using preview image path: {image_path}")
+                else:
+                    # Fallback to original
                     image_path = self.base_path / st.session_state.content_type / st.session_state.selected_image
-                logger.debug(f"Using preview image path: {image_path}")
+                    logger.debug(f"Preview not found, using original: {image_path}")
             else:
                 # Use original image path
                 image_path = self.base_path / st.session_state.content_type / st.session_state.selected_image
-                logger.debug(f"Using original image path: {image_path}")
-            
+                logger.debug(f"No preview, using original image path: {image_path}")
+
             # Check if we're in click position mode and have the library
             if st.session_state.get("click_position_mode", False) and HAS_IMAGE_COORDINATES:
+                # Verify image exists
+                if not image_path.exists():
+                    st.error(f"❌ Image not found: {image_path}")
+                    st.info("💡 Try generating a preview first, then click to set position")
+                    if st.button("Cancel"):
+                        st.session_state.click_position_mode = False
+                        st.rerun()
+                    return
+
                 # Load image and get dimensions
-                img = Image.open(str(image_path))
+                try:
+                    img = Image.open(str(image_path))
+                    logger.debug(f"Loaded image: {image_path}, mode: {img.mode}, size: {img.size}")
+                except Exception as e:
+                    st.error(f"❌ Failed to load image: {e}")
+                    logger.error(f"Image load error: {e}")
+                    if st.button("Cancel"):
+                        st.session_state.click_position_mode = False
+                        st.rerun()
+                    return
+
+                # Convert to RGB if needed (WebP can be RGBA, which causes issues)
+                if img.mode not in ('RGB', 'RGBA'):
+                    img = img.convert('RGB')
+                elif img.mode == 'RGBA':
+                    # Convert RGBA to RGB with white background
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[3])  # Use alpha channel as mask
+                    img = background
+
                 orig_width, orig_height = img.size
-                
+                logger.debug(f"Image ready for display: size={orig_width}x{orig_height}, mode={img.mode}")
+
                 # Resize image to fit container properly while maintaining aspect ratio
                 # Increased width for better visibility, standard column is ~700px
-                display_width = 600  
+                display_width = 600
                 aspect_ratio = orig_height / orig_width
                 display_height = int(display_width * aspect_ratio)
                 img_resized = img.resize((display_width, display_height), Image.Resampling.LANCZOS)
-                
+                logger.debug(f"Resized image to: {display_width}x{display_height}")
+
                 # Which caption are we positioning?
-                target_caption = st.session_state.get("position_target", "main")
                 if target_caption == "main":
                     st.info("👆 **Click to set MAIN CAPTION position** (Caption 1)")
                 else:
                     st.info("👆 **Click to set EXTRA CAPTION position** (Caption 2)")
-                
+
                 # Display clickable image
-                coords = streamlit_image_coordinates(
-                    img_resized,
-                    key=f"position_picker_{target_caption}",
-                    width=display_width,  # Explicitly set width to match our resized image
-                )
+                logger.debug(f"Displaying clickable image with key: position_picker_{target_caption}")
+                try:
+                    coords = streamlit_image_coordinates(
+                        img_resized,
+                        key=f"position_picker_{target_caption}",
+                        width=display_width,  # Explicitly set width to match our resized image
+                    )
+                    logger.debug(f"streamlit_image_coordinates returned: {coords}")
+                except Exception as e:
+                    st.error(f"❌ Failed to display clickable image: {e}")
+                    logger.error(f"streamlit_image_coordinates error: {e}")
+                    coords = None
                 
                 # If clicked, calculate normalized position with high precision
                 if coords is not None:
