@@ -124,16 +124,16 @@ def draw_plain_image(
                     if is_emoji:
                         # Render EACH emoji character separately
                         from .emoji_renderer_simple import simple_emoji_renderer
-                        emoji_size = int(scaled_font_size * 1.0)  # Match text size exactly
+                        emoji_size = int(scaled_font_size * 0.95)  # Slightly smaller than text
                         
-                        # Pull emoji closer to text - reduce gap for natural spacing
-                        # The emoji PNG might have built-in padding, so we compensate
-                        current_x -= int(scaled_font_size * 0.15)  # Tighten gap
+                        # Pull emoji closer to text - reduce horizontal gap
+                        current_x -= int(scaled_font_size * 0.2)
                         
                         # Each character in the segment is an emoji that needs to be rendered
                         for emoji_char in segment:
-                            # Calculate position for emoji (center aligned with text)
-                            emoji_y = int(line_y) + int((scaled_font_size - emoji_size) / 2)
+                            # Push emoji DOWN to align with text baseline (not floating above)
+                            # Text fonts have ascenders, so we need to offset downward
+                            emoji_y = int(line_y) + int(scaled_font_size * 0.1)
                             
                             try:
                                 # Use the simple renderer to overlay the emoji
@@ -142,7 +142,7 @@ def draw_plain_image(
                                 )
                                 print(f"PLAIN // Successfully rendered emoji PNG for {emoji_char}")
                                 
-                                # Advance position by emoji width (with slight spacing between multiple emojis)
+                                # Advance position by emoji width
                                 current_x += emoji_size
                             except Exception as e2:
                                 print(f"PLAIN // Failed to render emoji PNG {emoji_char}: {e2}")

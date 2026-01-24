@@ -135,16 +135,16 @@ def draw_wrapped_text(
                         if is_emoji:
                             # Render EACH emoji character separately
                             from .emoji_renderer_simple import simple_emoji_renderer
-                            emoji_size = int(font.size * 1.0)  # Match text size exactly
+                            emoji_size = int(font.size * 0.95)  # Slightly smaller than text
                             
-                            # Pull emoji closer to text - reduce gap for natural spacing
-                            current_x -= int(font.size * 0.15)
+                            # Pull emoji closer to text - reduce horizontal gap
+                            current_x -= int(font.size * 0.2)
                             
                             for emoji_char in segment:
                                 print(f"HIGHLIGHT // Rendering emoji: {emoji_char}")
                                 
-                                # Calculate position for emoji (center aligned with text)
-                                emoji_y = int(line_data["y"]) + int((font.size - emoji_size) / 2)
+                                # Push emoji DOWN to align with text baseline
+                                emoji_y = int(line_data["y"]) + int(font.size * 0.1)
                                 
                                 if base_image is not None:
                                     try:
