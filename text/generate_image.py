@@ -186,6 +186,12 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
                 # If no horizontal position specified for extra, default to 0.5 (Center)
                 # Do NOT inherit from main caption
                 local_settings["width_center_position"] = 0.5
+        elif idx > 0:
+            # Fallback if "Separate settings" is OFF:
+            # Shift extra captions down automatically so they don't overlap perfectly
+            current_y = local_settings.get("height_center_position", 0.5)
+            # Add 15% height offset per caption index
+            local_settings["height_center_position"] = min(0.95, current_y + (0.15 * idx))
         
         img = renderer(**local_settings)
     
