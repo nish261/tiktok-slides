@@ -2046,6 +2046,10 @@ class InterfaceSettingsManager:
         try:
             from text.generate_image import generate_image
             
+            # Inject extra caption settings from session state so they are available to the renderer
+            if "extra_caption_settings" in st.session_state and st.session_state.extra_caption_settings:
+                settings_data["extra_caption_settings"] = st.session_state.extra_caption_settings
+            
             logger.trace(f"PREVIEW // About to call generate_image with settings: {settings_data}")
             
             result = generate_image(

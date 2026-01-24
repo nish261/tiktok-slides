@@ -141,13 +141,7 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
         return renderer(**final_settings)
     
     # Render multiple captions with separate positions
-    # Try to get extra caption settings from streamlit session state
-    extra_settings = None
-    try:
-        import streamlit as st
-        extra_settings = st.session_state.get("extra_caption_settings", None)
-    except:
-        pass
+    extra_settings = settings.get("extra_caption_settings")
     
     img = image
     for idx, part in enumerate(parts):
