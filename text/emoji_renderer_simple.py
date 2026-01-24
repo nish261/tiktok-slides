@@ -109,16 +109,16 @@ class SimpleEmojiRenderer:
         return self._create_emoji_png(emoji_char, font_size, png_path)
     
     def _create_emoji_png(self, emoji_char: str, font_size: int, png_path: Path) -> Optional[str]:
-        """Create emoji PNG - prioritize Twemoji for high quality, Apple as fallback"""
+        """Create emoji PNG - use high-quality Apple emoji PNGs from cj1128/emoji-images"""
         try:
             print(f"Creating emoji PNG for {emoji_char}...")
             
-            # PRIORITY 1: Try Twemoji first (high-res 72x72 PNGs, looks great when scaled)
+            # PRIORITY 1: Try Apple emoji PNGs from cj1128/emoji-images (200x200 high quality)
             codepath = self._emoji_to_twemoji_path(emoji_char)
-            twemoji_url = f"https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/{codepath}.png"
+            apple_url = f"https://raw.githubusercontent.com/cj1128/emoji-images/master/imgs/{codepath}.png"
             
-            tmp_dl = png_path.with_suffix(".twemoji.tmp")
-            ok = self._download_url(twemoji_url, tmp_dl)
+            tmp_dl = png_path.with_suffix(".apple.tmp")
+            ok = self._download_url(apple_url, tmp_dl)
             if ok:
                 # Open and resize to desired font_size
                 img = Image.open(tmp_dl).convert("RGBA")
@@ -128,15 +128,15 @@ class SimpleEmojiRenderer:
                     tmp_dl.unlink()
                 except Exception:
                     pass
-                print(f"Successfully created Twemoji PNG for {emoji_char}")
+                print(f"Successfully created Apple emoji PNG for {emoji_char}")
                 return str(png_path)
             
-            print(f"Twemoji download failed for {emoji_char}, trying Apple extraction...")
+            print(f"Apple emoji download failed for {emoji_char}, trying local extraction...")
             
-            # PRIORITY 2: Fallback to Apple extraction (lower quality but works offline)
+            # PRIORITY 2: Fallback to local Apple extraction
             apple_result = self._extract_apple_emoji(emoji_char, font_size, png_path)
             if apple_result:
-                print(f"Successfully created Apple emoji PNG for {emoji_char}")
+                print(f"Successfully extracted Apple emoji PNG for {emoji_char}")
                 return str(png_path)
             
             # PRIORITY 3: Final fallback to monochrome
