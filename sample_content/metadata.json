@@ -86,10 +86,10 @@
         },
         "text_settings": {
           "plain": {
-            "font_size": 60,
+            "font_size": 30,
             "font": "assets.fonts.tiktokfont.ttf",
             "style_type": "outline_width",
-            "style_value": 4,
+            "style_value": 3,
             "colors": [
               {
                 "text": "#FFFFFF",

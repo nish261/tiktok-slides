@@ -124,7 +124,11 @@ def draw_plain_image(
                     if is_emoji:
                         # Render EACH emoji character separately
                         from .emoji_renderer_simple import simple_emoji_renderer
-                        emoji_size = int(scaled_font_size * 1.1)  # Match text size closely
+                        emoji_size = int(scaled_font_size * 1.0)  # Match text size exactly
+                        
+                        # Pull emoji closer to text - reduce gap for natural spacing
+                        # The emoji PNG might have built-in padding, so we compensate
+                        current_x -= int(scaled_font_size * 0.15)  # Tighten gap
                         
                         # Each character in the segment is an emoji that needs to be rendered
                         for emoji_char in segment:
@@ -138,7 +142,7 @@ def draw_plain_image(
                                 )
                                 print(f"PLAIN // Successfully rendered emoji PNG for {emoji_char}")
                                 
-                                # Advance position by emoji width
+                                # Advance position by emoji width (with slight spacing between multiple emojis)
                                 current_x += emoji_size
                             except Exception as e2:
                                 print(f"PLAIN // Failed to render emoji PNG {emoji_char}: {e2}")
