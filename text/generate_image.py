@@ -198,6 +198,55 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
                 # If no horizontal position specified for extra, default to 0.5 (Center)
                 # Do NOT inherit from main caption
                 local_settings["width_center_position"] = 0.5
+
+            # 3. Apply Font Settings
+            if "font" in extra_settings:
+                # Handle path resolution if needed
+                try:
+                    from pathlib import Path
+                    BASE_DIR = Path(__file__).resolve().parent.parent
+                    resolved_font = str((BASE_DIR / extra_settings["font"].replace("assets.fonts.", "assets/fonts/")).resolve())
+                    local_settings["font_path"] = resolved_font
+                except:
+                    # Fallback if path manipulation fails, use as is or keep main font
+                    pass
+            
+            if "font_size" in extra_settings:
+                local_settings["font_size"] = extra_settings["font_size"]
+            
+            # 4. Apply Colors & Styles
+            if text_type == "plain":
+                if "text_color" in extra_settings:
+                    local_settings["text_color"] = extra_settings["text_color"]
+                if "outline_color" in extra_settings:
+                    local_settings["outline_color"] = extra_settings["outline_color"]
+                if "style_value" in extra_settings:
+                    local_settings["outline_width"] = extra_settings["style_value"]
+            elif text_type == "highlight":
+                if "text_color" in extra_settings:
+                    local_settings["text_color"] = extra_settings["text_color"]
+                if "outline_color" in extra_settings:
+                    local_settings["background_color"] = extra_settings["outline_color"]
+                if "style_value" in extra_settings:
+                    local_settings["corner_radius"] = extra_settings["style_value"]
+            
+            # 5. Apply Margins
+            if "margin_top" in extra_settings:
+                local_settings["margins"]["top"] = extra_settings["margin_top"]
+            if "margin_bottom" in extra_settings:
+                local_settings["margins"]["bottom"] = extra_settings["margin_bottom"]
+            if "margin_left" in extra_settings:
+                local_settings["margins"]["left"] = extra_settings["margin_left"]
+            if "margin_right" in extra_settings:
+                local_settings["margins"]["right"] = extra_settings["margin_right"]
+
+        # DEBUG DEBUG DEBUG
+        if idx > 0:
+            logger.debug(f"local_settings width_center_position AFTER: {local_settings.get('width_center_position')}")
+            logger.debug(f"local_settings height_center_position AFTER: {local_settings.get('height_center_position')}")
+            if extra_settings:
+                 logger.debug(f"Applied extra settings: Font={local_settings.get('font_size')}, Color={local_settings.get('text_color')}")
+        # END DEBUG
         elif idx > 0:
             # Fallback if "Separate settings" is OFF:
             # Shift extra captions down automatically so they don't overlap perfectly
