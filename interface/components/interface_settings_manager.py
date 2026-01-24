@@ -1662,45 +1662,44 @@ class InterfaceSettingsManager:
                 if use_multi:
                     st.markdown("---")
                     st.markdown("#### 📝 Caption 2 Settings (Independent)")
-                    # Get current settings as defaults
-                    current_text_settings = settings_data.get("text_settings", {})
+                    # Caption 2 has its own independent defaults - does NOT inherit from Caption 1
+                    # Get text type for style label only
                     current_type = settings_data.get("base_settings", {}).get("default_text_type", "plain")
+                    current_text_settings = settings_data.get("text_settings", {})
                     base_text_settings = current_text_settings.get(current_type, {})
-                    base_position = base_text_settings.get("position", {})
-                    base_margins = base_text_settings.get("margins", {})
 
                     # ===== FONT SETTINGS ROW =====
                     st.markdown("**Font & Style**")
                     col1, col2, col3 = st.columns([4, 2, 2])
 
                     with col1:
-                        # Font selection
-                        current_font_name = base_text_settings.get("font", "").split(".")[-2] if base_text_settings.get("font") else "tiktokfont"
+                        # Font selection - Independent default (tiktokfont)
                         extra_font = st.selectbox(
                             "Font",
                             options=list(self.fonts.keys()),
-                            index=list(self.fonts.keys()).index(current_font_name) if current_font_name in self.fonts else 0,
+                            index=0,  # Always default to first font (tiktokfont)
                             key="extra_caption_font"
                         )
-                        extra_caption_settings["font"] = self.fonts.get(extra_font, base_text_settings.get("font", ""))
+                        extra_caption_settings["font"] = self.fonts.get(extra_font)
 
                     with col2:
                         extra_font_size = st.number_input(
                             "Font Size",
                             min_value=10,
                             max_value=200,
-                            value=base_text_settings.get("font_size", 50),
+                            value=50,  # Independent default
                             key="extra_caption_font_size"
                         )
                         extra_caption_settings["font_size"] = extra_font_size
 
                     with col3:
+                        # Get style type from Caption 1 for label, but use independent default value
                         style_label = base_text_settings.get("style_type", "outline_width").replace("_", " ").title()
                         extra_style_value = st.number_input(
                             style_label,
                             min_value=0,
                             max_value=100,
-                            value=base_text_settings.get("style_value", 5),
+                            value=5,  # Independent default
                             key="extra_caption_style_value"
                         )
                         extra_caption_settings["style_value"] = extra_style_value
@@ -1709,10 +1708,11 @@ class InterfaceSettingsManager:
                     # ===== POSITION SETTINGS =====
                     st.markdown("**Position**")
 
-                    # Vertical position with slider
+                    # Vertical position with slider - INDEPENDENT from Caption 1
                     vcol1, vcol2 = st.columns([0.7, 0.3])
                     with vcol1:
-                        default_v = base_position.get("vertical", [0.5, 0.5])
+                        # Default to bottom (0.75) instead of inheriting Caption 1's position
+                        default_v = (0.75, 0.75) if "extra_caption_v_pos" not in st.session_state else st.session_state.extra_caption_v_pos
                         if isinstance(default_v, list):
                             default_v = tuple(default_v)
                         extra_v_pos = st.slider(
@@ -1728,16 +1728,17 @@ class InterfaceSettingsManager:
                             "V Jitter",
                             min_value=0.0,
                             max_value=0.1,
-                            value=float(base_position.get("vertical_jitter", 0.0)),
+                            value=0.0,  # Independent default
                             step=0.01,
                             key="extra_caption_v_jitter"
                         )
                         extra_caption_settings["vertical_jitter"] = extra_v_jitter
 
-                    # Horizontal position with slider
+                    # Horizontal position with slider - INDEPENDENT from Caption 1
                     hcol1, hcol2 = st.columns([0.7, 0.3])
                     with hcol1:
-                        default_h = base_position.get("horizontal", [0.5, 0.5])
+                        # Default to center (0.5) instead of inheriting Caption 1's position
+                        default_h = (0.5, 0.5) if "extra_caption_h_pos" not in st.session_state else st.session_state.extra_caption_h_pos
                         if isinstance(default_h, list):
                             default_h = tuple(default_h)
                         extra_h_pos = st.slider(
@@ -1753,7 +1754,7 @@ class InterfaceSettingsManager:
                             "H Jitter",
                             min_value=0.0,
                             max_value=0.1,
-                            value=float(base_position.get("horizontal_jitter", 0.0)),
+                            value=0.0,  # Independent default
                             step=0.01,
                             key="extra_caption_h_jitter"
                         )
@@ -1783,19 +1784,19 @@ class InterfaceSettingsManager:
                     mcol1, mcol2, mcol3, mcol4 = st.columns(4)
                     with mcol1:
                         extra_margin_top = st.number_input("Top", min_value=0, max_value=500,
-                            value=int(base_margins.get("top", 50)), key="extra_margin_top")
+                            value=50, key="extra_margin_top")  # Independent default
                         extra_caption_settings["margin_top"] = extra_margin_top
                     with mcol2:
                         extra_margin_bottom = st.number_input("Bottom", min_value=0, max_value=500,
-                            value=int(base_margins.get("bottom", 50)), key="extra_margin_bottom")
+                            value=50, key="extra_margin_bottom")  # Independent default
                         extra_caption_settings["margin_bottom"] = extra_margin_bottom
                     with mcol3:
                         extra_margin_left = st.number_input("Left", min_value=0, max_value=500,
-                            value=int(base_margins.get("left", 50)), key="extra_margin_left")
+                            value=50, key="extra_margin_left")  # Independent default
                         extra_caption_settings["margin_left"] = extra_margin_left
                     with mcol4:
                         extra_margin_right = st.number_input("Right", min_value=0, max_value=500,
-                            value=int(base_margins.get("right", 50)), key="extra_margin_right")
+                            value=50, key="extra_margin_right")  # Independent default
                         extra_caption_settings["margin_right"] = extra_margin_right
 
                     st.markdown("---")
@@ -1807,6 +1808,9 @@ class InterfaceSettingsManager:
                 extra_parts = []
                 if use_multi and extra_captions_text:
                     extra_parts = [ln.strip() for ln in extra_captions_text.splitlines() if ln.strip()]
+                    print(f"\n📝 Extra parts created: {extra_parts}")
+                elif use_multi:
+                    print(f"\n⚠️  Multi-caption ON but no extra_captions_text")
                 
                 # Initialize caption selection if needed
                 if "selected_caption_idx" not in st.session_state:
@@ -1869,11 +1873,15 @@ class InterfaceSettingsManager:
                             try:
                                 # Get selected caption
                                 selected_caption = captions[st.session_state.selected_caption_idx]
-                                
+
                                 # Merge with multi-caption parts using '||'
                                 if extra_parts:
                                     merged = [selected_caption] + extra_parts
                                     selected_caption = " || ".join(merged)
+                                    print(f"\n🔄 MERGED CAPTION: {selected_caption}")
+                                    print(f"   Parts: {merged}")
+                                else:
+                                    print(f"\n⚠️  NO EXTRA PARTS - Single caption only: {selected_caption}")
                                 
                                 # Get current image path
                                 image_path = self.base_path / st.session_state.content_type / current_image

@@ -148,17 +148,23 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     
     img = image
     for idx, part in enumerate(parts):
+        # Deep copy to prevent sharing mutable dicts like margins between captions
         local_settings = dict(final_settings)
+        local_settings["margins"] = dict(final_settings["margins"])  # Deep copy margins!
         local_settings["image"] = img
         local_settings["text"] = part
         
         if idx > 0:
-            logger.debug(f"=== EXTRA CAPTION {idx} DEBUG ===")
-            logger.debug(f"extra_settings exists: {extra_settings is not None}")
-            logger.debug(f"extra_settings content: {extra_settings}")
-            logger.debug(f"local_settings width_center_position BEFORE: {local_settings.get('width_center_position')}")
-            logger.debug(f"local_settings height_center_position BEFORE: {local_settings.get('height_center_position')}")
-            logger.debug(f"Settings Source: {settings.get('settings_source', 'unknown')}")
+            print(f"\n{'='*60}")
+            print(f"CAPTION {idx+1} DEBUG")
+            print(f"{'='*60}")
+            print(f"Extra settings exists: {extra_settings is not None}")
+            if extra_settings:
+                print(f"Vertical position from settings: {extra_settings.get('vertical_position')}")
+                print(f"Horizontal position from settings: {extra_settings.get('horizontal_position')}")
+            print(f"Position BEFORE applying extras:")
+            print(f"  Width: {local_settings.get('width_center_position')}")
+            print(f"  Height: {local_settings.get('height_center_position')}")
             
         if idx > 0 and extra_settings:
             # === EXTRA CAPTION HANDLING ===
@@ -172,35 +178,40 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
             if "vertical_position" in extra_settings:
                 v_data = extra_settings["vertical_position"]
                 v_jitter = extra_settings.get("vertical_jitter", 0.0)
-                
+
                 # Handle range or single value
                 if isinstance(v_data, (list, tuple)) and len(v_data) >= 2:
                     v_pos = random.uniform(v_data[0], v_data[1])
                 else:
                     v_pos = float(v_data) if not isinstance(v_data, (list, tuple)) else v_data[0]
-                
+
                 # Apply jitter
                 v_jitter_val = random.uniform(-v_jitter, v_jitter)
-                local_settings["height_center_position"] = v_pos + v_jitter_val
+                final_v_pos = v_pos + v_jitter_val
+                local_settings["height_center_position"] = final_v_pos
+                print(f"✅ Applied vertical position: {v_data} -> {v_pos:.4f} + jitter {v_jitter_val:.4f} = {final_v_pos:.4f}")
 
             # 2. Horizontal Position
             if "horizontal_position" in extra_settings:
                 h_data = extra_settings["horizontal_position"]
                 h_jitter = extra_settings.get("horizontal_jitter", 0.0)
-                
+
                 # Handle range or single value
                 if isinstance(h_data, (list, tuple)) and len(h_data) >= 2:
                     h_pos = random.uniform(h_data[0], h_data[1])
                 else:
                     h_pos = float(h_data) if not isinstance(h_data, (list, tuple)) else h_data[0]
-                
+
                 # Apply jitter
                 h_jitter_val = random.uniform(-h_jitter, h_jitter)
-                local_settings["width_center_position"] = h_pos + h_jitter_val
+                final_h_pos = h_pos + h_jitter_val
+                local_settings["width_center_position"] = final_h_pos
+                print(f"✅ Applied horizontal position: {h_data} -> {h_pos:.4f} + jitter {h_jitter_val:.4f} = {final_h_pos:.4f}")
             else:
                 # If no horizontal position specified for extra, default to 0.5 (Center)
                 # Do NOT inherit from main caption
                 local_settings["width_center_position"] = 0.5
+                print(f"⚠️  No horizontal position in extra_settings, using default 0.5")
 
             # 3. Apply Font Settings
             if "font" in extra_settings:
@@ -256,21 +267,21 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
 
         # DEBUG: Log final applied settings for extra captions
         if idx > 0:
-            logger.debug(f"=== EXTRA CAPTION {idx} FINAL SETTINGS ===")
-            logger.debug(f"Width position AFTER: {local_settings.get('width_center_position')}")
-            logger.debug(f"Height position AFTER: {local_settings.get('height_center_position')}")
-            logger.debug(f"Font size: {local_settings.get('font_size')}")
-            logger.debug(f"Text color: {local_settings.get('text_color')}")
-            logger.debug(f"Outline/Background color: {local_settings.get('outline_color', local_settings.get('background_color'))}")
-            logger.debug(f"Margins: {local_settings.get('margins')}")
-
             # Fallback if "Separate settings" is OFF:
             # Shift extra captions down automatically so they don't overlap
             if not extra_settings:
                 current_y = local_settings.get("height_center_position", 0.5)
                 # Add 15% height offset per caption index
                 local_settings["height_center_position"] = min(0.95, current_y + (0.15 * idx))
-                logger.debug(f"No extra_settings - auto-offset applied: {local_settings['height_center_position']}")
+                print(f"⚠️  No extra_settings - auto-offset applied: {local_settings['height_center_position']}")
+
+            print(f"\nFINAL SETTINGS FOR CAPTION {idx+1}:")
+            print(f"  Width position: {local_settings.get('width_center_position'):.4f}")
+            print(f"  Height position: {local_settings.get('height_center_position'):.4f}")
+            print(f"  Font size: {local_settings.get('font_size')}")
+            print(f"  Text color: {local_settings.get('text_color')}")
+            print(f"  Margins: {local_settings.get('margins')}")
+            print(f"{'='*60}\n")
         
         img = renderer(**local_settings)
     
