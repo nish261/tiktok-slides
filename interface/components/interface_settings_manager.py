@@ -1809,13 +1809,6 @@ class InterfaceSettingsManager:
                 
                 # Store extra settings in session state for preview generation
                 st.session_state.extra_caption_settings = extra_caption_settings if use_separate_settings else None
-
-                # DEBUG DEBUG DEBUG
-                if use_separate_settings and extra_caption_settings:
-                    with st.expander("🔍 Debug: Extra Caption Settings", expanded=False):
-                        st.write("Current Settings Object:")
-                        st.json(extra_caption_settings)
-                # END DEBUG
                 
                 extra_parts = []
                 if use_multi and extra_captions_text:

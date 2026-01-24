@@ -35,7 +35,10 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     
     if text_type not in VALID_TEXT_TYPES:
         raise ValueError(f"Invalid text type: {text_type}")
+    logger.debug(f"GENERATE IMAGE CALLED WITH TEXT: {text}")
     
+    # Get common settings
+    font_path = settings["base_settings"]["font_path"]
     text_settings = settings["text_settings"][text_type]
     logger.debug(f"generate image // settings: {settings}")
     image = Image.open(image_path)
@@ -253,10 +256,10 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
 
         # DEBUG DEBUG DEBUG
         if idx > 0:
-            logger.debug(f"local_settings width_center_position AFTER: {local_settings.get('width_center_position')}")
-            logger.debug(f"local_settings height_center_position AFTER: {local_settings.get('height_center_position')}")
+            print(f"DEBUG // local_settings width AFTER: {local_settings.get('width_center_position')}")
+            print(f"DEBUG // local_settings height AFTER: {local_settings.get('height_center_position')}")
             if extra_settings:
-                 logger.debug(f"Applied extra settings: Font={local_settings.get('font_size')}, Color={local_settings.get('text_color')}")
+                 print(f"DEBUG // Applied extra settings: Font={local_settings.get('font_size')}, Color={local_settings.get('text_color')}")
         # END DEBUG
         elif idx > 0:
             # Fallback if "Separate settings" is OFF:
