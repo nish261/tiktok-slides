@@ -254,19 +254,23 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
             if "margin_right" in extra_settings:
                 local_settings["margins"]["right"] = extra_settings["margin_right"]
 
-        # DEBUG DEBUG DEBUG
+        # DEBUG: Log final applied settings for extra captions
         if idx > 0:
-            print(f"DEBUG // local_settings width AFTER: {local_settings.get('width_center_position')}")
-            print(f"DEBUG // local_settings height AFTER: {local_settings.get('height_center_position')}")
-            if extra_settings:
-                 print(f"DEBUG // Applied extra settings: Font={local_settings.get('font_size')}, Color={local_settings.get('text_color')}")
-        # END DEBUG
-        elif idx > 0:
+            logger.debug(f"=== EXTRA CAPTION {idx} FINAL SETTINGS ===")
+            logger.debug(f"Width position AFTER: {local_settings.get('width_center_position')}")
+            logger.debug(f"Height position AFTER: {local_settings.get('height_center_position')}")
+            logger.debug(f"Font size: {local_settings.get('font_size')}")
+            logger.debug(f"Text color: {local_settings.get('text_color')}")
+            logger.debug(f"Outline/Background color: {local_settings.get('outline_color', local_settings.get('background_color'))}")
+            logger.debug(f"Margins: {local_settings.get('margins')}")
+
             # Fallback if "Separate settings" is OFF:
-            # Shift extra captions down automatically so they don't overlap perfectly
-            current_y = local_settings.get("height_center_position", 0.5)
-            # Add 15% height offset per caption index
-            local_settings["height_center_position"] = min(0.95, current_y + (0.15 * idx))
+            # Shift extra captions down automatically so they don't overlap
+            if not extra_settings:
+                current_y = local_settings.get("height_center_position", 0.5)
+                # Add 15% height offset per caption index
+                local_settings["height_center_position"] = min(0.95, current_y + (0.15 * idx))
+                logger.debug(f"No extra_settings - auto-offset applied: {local_settings['height_center_position']}")
         
         img = renderer(**local_settings)
     

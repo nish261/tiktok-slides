@@ -122,25 +122,37 @@ with tab1:
                 try:
                     from text.generate_image import generate_image
 
-                    # Get image
+                    # Get image dimensions for margin calculations
                     img = Image.open(image_path)
+                    img_width, img_height = img.size
 
-                    # Get settings
+                    # Build settings in correct format
                     settings = {
-                        "font_size": 70,
-                        "font": "assets/fonts/tiktokfont.ttf",
-                        "style_type": "outline_width",
-                        "style_value": 3,
-                        "colors": [{"text": "#FFFFFF", "outline": "#000000"}],
-                        "margin_top": margin_top,
-                        "margin_bottom": margin_bottom,
-                        "margin_left": margin_left,
-                        "margin_right": margin_right,
-                        "position": "center"
+                        "text_settings": {
+                            "plain": {
+                                "font_size": 70,
+                                "font": "assets.fonts.tiktokfont.ttf",
+                                "style_type": "outline_width",
+                                "style_value": 3,
+                                "colors": [{"text": "#FFFFFF", "outline": "#000000"}],
+                                "margins": {
+                                    "top": margin_top / img_height,
+                                    "bottom": margin_bottom / img_height,
+                                    "left": margin_left / img_width,
+                                    "right": margin_right / img_width
+                                },
+                                "position": {
+                                    "vertical": [0.5, 0.5],
+                                    "horizontal": [0.5, 0.5],
+                                    "vertical_jitter": 0.0,
+                                    "horizontal_jitter": 0.0
+                                }
+                            }
+                        }
                     }
 
-                    # Generate
-                    result_img = generate_image(img, test_text, settings, "plain", 0)
+                    # Generate - pass image_path as string, not Image object
+                    result_img = generate_image(settings, "plain", 0, str(image_path), test_text)
 
                     # Save preview
                     preview_path = sm.base_path / "preview_temp.png"

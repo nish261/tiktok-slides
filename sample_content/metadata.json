@@ -98,12 +98,12 @@
             ],
             "position": {
               "vertical": [
-                0.0777,
-                0.0777
+                0.4391,
+                0.4391
               ],
               "horizontal": [
-                0.125,
-                0.125
+                0.2767,
+                0.2767
               ],
               "vertical_jitter": 0.01,
               "horizontal_jitter": 0.02
@@ -271,8 +271,74 @@
         "height": 1070
       },
       "product": null,
-      "settings_source": "default",
-      "settings": null,
+      "settings_source": "custom",
+      "settings": {
+        "base_settings": {
+          "default_text_type": "plain"
+        },
+        "text_settings": {
+          "plain": {
+            "font_size": 70,
+            "font": "assets.fonts.tiktokfont.ttf",
+            "style_type": "outline_width",
+            "style_value": 4,
+            "colors": [
+              {
+                "text": "#FFFFFF",
+                "outline": "#000000"
+              }
+            ],
+            "position": {
+              "vertical": [
+                0.097,
+                0.097
+              ],
+              "horizontal": [
+                0.34,
+                0.34
+              ],
+              "vertical_jitter": 0.01,
+              "horizontal_jitter": 0.02
+            },
+            "margins": {
+              "top": 0.05,
+              "bottom": 0.05,
+              "left": 0.1,
+              "right": 0.1
+            }
+          },
+          "highlight": {
+            "font_size": 70,
+            "font": "assets.fonts.tiktokfont.ttf",
+            "style_type": "corner_radius",
+            "style_value": 20,
+            "colors": [
+              {
+                "text": "#000000",
+                "background": "#FFFFFF"
+              }
+            ],
+            "position": {
+              "vertical": [
+                0.45,
+                0.55
+              ],
+              "horizontal": [
+                0.45,
+                0.55
+              ],
+              "vertical_jitter": 0.01,
+              "horizontal_jitter": 0.02
+            },
+            "margins": {
+              "top": 0.05,
+              "bottom": 0.05,
+              "left": 0.05,
+              "right": 0.05
+            }
+          }
+        }
+      },
       "set_id": null,
       "set_index": null
     },
