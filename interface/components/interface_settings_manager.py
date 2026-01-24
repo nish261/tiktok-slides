@@ -1822,6 +1822,31 @@ class InterfaceSettingsManager:
                 if captions and st.session_state.selected_caption_idx >= len(captions):
                     st.session_state.selected_caption_idx = 0
                 
+                # Check if user clicked "Apply Position" - update settings and regenerate
+                if st.session_state.get("apply_clicked_position", False) and st.session_state.get("clicked_position"):
+                    clicked = st.session_state.clicked_position
+                    x_pos = clicked["x"]
+                    y_pos = clicked["y"]
+                    
+                    # Update the position in settings
+                    current_type = settings_data.get('base_settings', {}).get('default_text_type', 'plain')
+                    if current_type in settings_data.get('text_settings', {}):
+                        # Set position to the clicked point (use same value for min and max for exact position)
+                        settings_data['text_settings'][current_type]['position']['horizontal'] = [x_pos, x_pos]
+                        settings_data['text_settings'][current_type]['position']['vertical'] = [y_pos, y_pos]
+                        
+                        # Save the updated settings
+                        image_name = st.session_state.get("selected_image")
+                        self.metadata_editor.edit_image(
+                            image_name, {"settings": settings_data, "settings_source": "custom"}
+                        )
+                        self.metadata.save()
+                        
+                        st.success(f"✅ Position applied: H={x_pos:.2f}, V={y_pos:.2f}")
+                    
+                    # Clear the apply flag but keep position for display
+                    st.session_state.apply_clicked_position = False
+                
                 # Two columns for buttons
                 col1, col2 = st.columns(2)
                 
