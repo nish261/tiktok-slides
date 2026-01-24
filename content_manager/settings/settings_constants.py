@@ -16,7 +16,7 @@ BASE_DIR = Path(__file__).resolve().parents[2]  # .../tiktok_slides (package roo
 TEMPLATE_PATH = BASE_DIR / "assets" / "templates"
 DEFAULT_TEMPLATE = TEMPLATE_PATH / "default.json"
 
-VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".JPG", ".JPEG"}
+VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".PNG", ".JPG", ".JPEG", ".webp", ".WEBP"}
 
 
 MULTI_COLOUR_SETTINGS_BACKUP = {

@@ -204,7 +204,7 @@ class PathValidator(StrictValidator):
         try:
             # Get file extension and check if it's an image extension
             ext = file_path.suffix.lower()
-            if ext not in [".png", ".jpg", ".jpeg"]:
+            if ext not in [".png", ".jpg", ".jpeg", ".webp"]:
                 return False
 
             # Validate image content using Pillow
@@ -404,7 +404,7 @@ class PathValidator(StrictValidator):
 
                     if item.is_file():
                         ext = item.suffix.lower()
-                        if ext not in [".png", ".jpg", ".jpeg"]:
+                        if ext not in [".png", ".jpg", ".jpeg", ".webp"]:
                             msg = f"Invalid image format in {content_type}: {item.name}"
                             self.add_error(msg)
                             raise ValueError(msg)

@@ -72,7 +72,7 @@ class MetadataGenerator:
 
     def _generate_structure(self) -> None:
         """Generate structure section with paths and image lists."""
-        valid_extensions = {".png", ".jpg", ".jpeg"}
+        valid_extensions = {".png", ".jpg", ".jpeg", ".webp"}
         self.metadata["structure"] = {}
 
         for content_type in self.content_types:
@@ -151,7 +151,7 @@ class MetadataGenerator:
     def _generate_untagged(self) -> None:
         """Generate untagged section - ONLY images in base folder that aren't in content folders."""
         # Get all valid image extensions
-        valid_extensions = {".png", ".jpg", ".jpeg"}
+        valid_extensions = {".png", ".jpg", ".jpeg", ".webp"}
 
         # Get all images from base folder
         base_images = [

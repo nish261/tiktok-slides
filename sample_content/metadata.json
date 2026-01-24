@@ -24,7 +24,18 @@
   "structure": {
     "slide1": {
       "path": "sample_content/slide1",
-      "images": []
+      "images": [
+        "IMG_0357.webp",
+        "IMG_0358.webp",
+        "IMG_0359.webp",
+        "IMG_0360.webp",
+        "IMG_0474.webp",
+        "IMG_0508.webp",
+        "image-1.webp",
+        "image-2.webp",
+        "image-3.webp",
+        "image.webp"
+      ]
     },
     "slide2": {
       "path": "sample_content/slide2",
@@ -61,6 +72,78 @@
       "set_id": null,
       "set_index": null
     },
+    "IMG_0357.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1159
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0358.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1175
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0359.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1179
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0360.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1189
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0474.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1129
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0508.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1070
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
     "b8dcdc75168ba01568da656a1382b91a.jpg": {
       "content_type": "slide2",
       "dimensions": {
@@ -78,6 +161,54 @@
       "dimensions": {
         "width": 900,
         "height": 1200
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "image-1.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 726,
+        "height": 1222
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "image-2.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 722,
+        "height": 1132
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "image-3.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 718,
+        "height": 994
+      },
+      "product": null,
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "image.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 598,
+        "height": 1088
       },
       "product": null,
       "settings_source": "default",
