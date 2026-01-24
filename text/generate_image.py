@@ -204,11 +204,22 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
                 # Handle path resolution if needed
                 try:
                     from pathlib import Path
-                    BASE_DIR = Path(__file__).resolve().parent.parent
-                    resolved_font = str((BASE_DIR / extra_settings["font"].replace("assets.fonts.", "assets/fonts/")).resolve())
-                    local_settings["font_path"] = resolved_font
-                except:
-                    # Fallback if path manipulation fails, use as is or keep main font
+                    # re-import here to be safe, though should be top level ideally
+                    # Fix: Make sure BASE_DIR is defined before use
+                    current_file_path = Path(__file__).resolve()
+                    base_dir = current_file_path.parent.parent
+                    
+                    font_setting = extra_settings["font"]
+                    # Calculate path similar to how it is done in main settings
+                    if "assets.fonts." in font_setting:
+                         rel_path = font_setting.replace("assets.fonts.", "assets/fonts/")
+                         resolved_font = str((base_dir / rel_path).resolve())
+                         local_settings["font_path"] = resolved_font
+                    else:
+                         local_settings["font_path"] = font_setting
+                except Exception as e:
+                    logger.error(f"Failed to resolve font path for extra caption: {e}")
+                    # Fallback if path manipulation fails
                     pass
             
             if "font_size" in extra_settings:
