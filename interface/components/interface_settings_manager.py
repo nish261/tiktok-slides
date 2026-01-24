@@ -1669,138 +1669,141 @@ class InterfaceSettingsManager:
                     )
                     
                     if use_separate_settings:
-                        with st.expander("Extra Caption Settings", expanded=True):
-                            # Get current settings as defaults
-                            current_text_settings = settings_data.get("text_settings", {})
-                            current_type = settings_data.get("base_settings", {}).get("default_text_type", "plain")
-                            base_text_settings = current_text_settings.get(current_type, {})
-                            base_position = base_text_settings.get("position", {})
-                            base_margins = base_text_settings.get("margins", {})
-                            
-                            # ===== FONT SETTINGS ROW =====
-                            st.markdown("**Font & Style**")
-                            col1, col2, col3 = st.columns([4, 2, 2])
-                            
-                            with col1:
-                                # Font selection
-                                current_font_name = base_text_settings.get("font", "").split(".")[-2] if base_text_settings.get("font") else "tiktokfont"
-                                extra_font = st.selectbox(
-                                    "Font",
-                                    options=list(self.fonts.keys()),
-                                    index=list(self.fonts.keys()).index(current_font_name) if current_font_name in self.fonts else 0,
-                                    key="extra_caption_font"
-                                )
-                                extra_caption_settings["font"] = self.fonts.get(extra_font, base_text_settings.get("font", ""))
-                            
-                            with col2:
-                                extra_font_size = st.number_input(
-                                    "Font Size",
-                                    min_value=10,
-                                    max_value=200,
-                                    value=base_text_settings.get("font_size", 50),
-                                    key="extra_caption_font_size"
-                                )
-                                extra_caption_settings["font_size"] = extra_font_size
-                            
-                            with col3:
-                                style_label = base_text_settings.get("style_type", "outline_width").replace("_", " ").title()
-                                extra_style_value = st.number_input(
-                                    style_label,
-                                    min_value=0,
-                                    max_value=100,
-                                    value=base_text_settings.get("style_value", 5),
-                                    key="extra_caption_style_value"
-                                )
-                                extra_caption_settings["style_value"] = extra_style_value
-                            
-                            # ===== POSITION SETTINGS =====
-                            st.markdown("**Position**")
-                            
-                            # Vertical position with slider
-                            vcol1, vcol2 = st.columns([0.7, 0.3])
-                            with vcol1:
-                                default_v = base_position.get("vertical", [0.5, 0.5])
-                                if isinstance(default_v, list):
-                                    default_v = tuple(default_v)
-                                extra_v_pos = st.slider(
-                                    "Vertical Position",
-                                    min_value=0.0,
-                                    max_value=1.0,
-                                    value=default_v,
-                                    key="extra_caption_v_pos"
-                                )
-                                extra_caption_settings["vertical_position"] = list(extra_v_pos)
-                            with vcol2:
-                                extra_v_jitter = st.number_input(
-                                    "V Jitter",
-                                    min_value=0.0,
-                                    max_value=0.1,
-                                    value=base_position.get("vertical_jitter", 0.0),
-                                    key="extra_caption_v_jitter"
-                                )
-                                extra_caption_settings["vertical_jitter"] = extra_v_jitter
-                            
-                            # Horizontal position with slider
-                            hcol1, hcol2 = st.columns([0.7, 0.3])
-                            with hcol1:
-                                default_h = base_position.get("horizontal", [0.5, 0.5])
-                                if isinstance(default_h, list):
-                                    default_h = tuple(default_h)
-                                extra_h_pos = st.slider(
-                                    "Horizontal Position",
-                                    min_value=0.0,
-                                    max_value=1.0,
-                                    value=default_h,
-                                    key="extra_caption_h_pos"
-                                )
-                                extra_caption_settings["horizontal_position"] = list(extra_h_pos)
-                            with hcol2:
-                                extra_h_jitter = st.number_input(
-                                    "H Jitter",
-                                    min_value=0.0,
-                                    max_value=0.1,
-                                    value=base_position.get("horizontal_jitter", 0.0),
-                                    key="extra_caption_h_jitter"
-                                )
-                                extra_caption_settings["horizontal_jitter"] = extra_h_jitter
-                            
-                            # ===== COLOR SETTINGS =====
-                            st.markdown("**Colors**")
-                            col_text, col_outline = st.columns(2)
-                            with col_text:
-                                extra_text_color = st.color_picker(
-                                    "Text Color",
-                                    value="#FFFFFF",
-                                    key="extra_caption_text_color"
-                                )
-                                extra_caption_settings["text_color"] = extra_text_color
-                            with col_outline:
-                                extra_outline_color = st.color_picker(
-                                    "Outline/BG Color", 
-                                    value="#000000",
-                                    key="extra_caption_outline_color"
-                                )
-                                extra_caption_settings["outline_color"] = extra_outline_color
-                            
-                            # ===== MARGINS =====
-                            st.markdown("**Margins**")
-                            mcol1, mcol2, mcol3, mcol4 = st.columns(4)
-                            with mcol1:
-                                extra_margin_top = st.number_input("Top", min_value=0, max_value=500, 
-                                    value=base_margins.get("top", 50), key="extra_margin_top")
-                                extra_caption_settings["margin_top"] = extra_margin_top
-                            with mcol2:
-                                extra_margin_bottom = st.number_input("Bottom", min_value=0, max_value=500,
-                                    value=base_margins.get("bottom", 50), key="extra_margin_bottom")
-                                extra_caption_settings["margin_bottom"] = extra_margin_bottom
-                            with mcol3:
-                                extra_margin_left = st.number_input("Left", min_value=0, max_value=500,
-                                    value=base_margins.get("left", 50), key="extra_margin_left")
-                                extra_caption_settings["margin_left"] = extra_margin_left
-                            with mcol4:
-                                extra_margin_right = st.number_input("Right", min_value=0, max_value=500,
-                                    value=base_margins.get("right", 50), key="extra_margin_right")
-                                extra_caption_settings["margin_right"] = extra_margin_right
+                        st.markdown("---")
+                        st.markdown("#### 📝 Extra Caption Settings")
+                        # Get current settings as defaults
+                        current_text_settings = settings_data.get("text_settings", {})
+                        current_type = settings_data.get("base_settings", {}).get("default_text_type", "plain")
+                        base_text_settings = current_text_settings.get(current_type, {})
+                        base_position = base_text_settings.get("position", {})
+                        base_margins = base_text_settings.get("margins", {})
+                        
+                        # ===== FONT SETTINGS ROW =====
+                        st.markdown("**Font & Style**")
+                        col1, col2, col3 = st.columns([4, 2, 2])
+                        
+                        with col1:
+                            # Font selection
+                            current_font_name = base_text_settings.get("font", "").split(".")[-2] if base_text_settings.get("font") else "tiktokfont"
+                            extra_font = st.selectbox(
+                                "Font",
+                                options=list(self.fonts.keys()),
+                                index=list(self.fonts.keys()).index(current_font_name) if current_font_name in self.fonts else 0,
+                                key="extra_caption_font"
+                            )
+                            extra_caption_settings["font"] = self.fonts.get(extra_font, base_text_settings.get("font", ""))
+                        
+                        with col2:
+                            extra_font_size = st.number_input(
+                                "Font Size",
+                                min_value=10,
+                                max_value=200,
+                                value=base_text_settings.get("font_size", 50),
+                                key="extra_caption_font_size"
+                            )
+                            extra_caption_settings["font_size"] = extra_font_size
+                        
+                        with col3:
+                            style_label = base_text_settings.get("style_type", "outline_width").replace("_", " ").title()
+                            extra_style_value = st.number_input(
+                                style_label,
+                                min_value=0,
+                                max_value=100,
+                                value=base_text_settings.get("style_value", 5),
+                                key="extra_caption_style_value"
+                            )
+                            extra_caption_settings["style_value"] = extra_style_value
+                        
+                        # ===== POSITION SETTINGS =====
+                        st.markdown("**Position**")
+                        
+                        # Vertical position with slider
+                        vcol1, vcol2 = st.columns([0.7, 0.3])
+                        with vcol1:
+                            default_v = base_position.get("vertical", [0.5, 0.5])
+                            if isinstance(default_v, list):
+                                default_v = tuple(default_v)
+                            extra_v_pos = st.slider(
+                                "Vertical Position",
+                                min_value=0.0,
+                                max_value=1.0,
+                                value=default_v,
+                                key="extra_caption_v_pos"
+                            )
+                            extra_caption_settings["vertical_position"] = list(extra_v_pos)
+                        with vcol2:
+                            extra_v_jitter = st.number_input(
+                                "V Jitter",
+                                min_value=0.0,
+                                max_value=0.1,
+                                value=base_position.get("vertical_jitter", 0.0),
+                                key="extra_caption_v_jitter"
+                            )
+                            extra_caption_settings["vertical_jitter"] = extra_v_jitter
+                        
+                        # Horizontal position with slider
+                        hcol1, hcol2 = st.columns([0.7, 0.3])
+                        with hcol1:
+                            default_h = base_position.get("horizontal", [0.5, 0.5])
+                            if isinstance(default_h, list):
+                                default_h = tuple(default_h)
+                            extra_h_pos = st.slider(
+                                "Horizontal Position",
+                                min_value=0.0,
+                                max_value=1.0,
+                                value=default_h,
+                                key="extra_caption_h_pos"
+                            )
+                            extra_caption_settings["horizontal_position"] = list(extra_h_pos)
+                        with hcol2:
+                            extra_h_jitter = st.number_input(
+                                "H Jitter",
+                                min_value=0.0,
+                                max_value=0.1,
+                                value=base_position.get("horizontal_jitter", 0.0),
+                                key="extra_caption_h_jitter"
+                            )
+                            extra_caption_settings["horizontal_jitter"] = extra_h_jitter
+                        
+                        # ===== COLOR SETTINGS =====
+                        st.markdown("**Colors**")
+                        col_text, col_outline = st.columns(2)
+                        with col_text:
+                            extra_text_color = st.color_picker(
+                                "Text Color",
+                                value="#FFFFFF",
+                                key="extra_caption_text_color"
+                            )
+                            extra_caption_settings["text_color"] = extra_text_color
+                        with col_outline:
+                            extra_outline_color = st.color_picker(
+                                "Outline/BG Color", 
+                                value="#000000",
+                                key="extra_caption_outline_color"
+                            )
+                            extra_caption_settings["outline_color"] = extra_outline_color
+                        
+                        # ===== MARGINS =====
+                        st.markdown("**Margins**")
+                        mcol1, mcol2, mcol3, mcol4 = st.columns(4)
+                        with mcol1:
+                            extra_margin_top = st.number_input("Top", min_value=0, max_value=500, 
+                                value=base_margins.get("top", 50), key="extra_margin_top")
+                            extra_caption_settings["margin_top"] = extra_margin_top
+                        with mcol2:
+                            extra_margin_bottom = st.number_input("Bottom", min_value=0, max_value=500,
+                                value=base_margins.get("bottom", 50), key="extra_margin_bottom")
+                            extra_caption_settings["margin_bottom"] = extra_margin_bottom
+                        with mcol3:
+                            extra_margin_left = st.number_input("Left", min_value=0, max_value=500,
+                                value=base_margins.get("left", 50), key="extra_margin_left")
+                            extra_caption_settings["margin_left"] = extra_margin_left
+                        with mcol4:
+                            extra_margin_right = st.number_input("Right", min_value=0, max_value=500,
+                                value=base_margins.get("right", 50), key="extra_margin_right")
+                            extra_caption_settings["margin_right"] = extra_margin_right
+                        
+                        st.markdown("---")
                 
                 # Store extra settings in session state for preview generation
                 st.session_state.extra_caption_settings = extra_caption_settings if use_separate_settings else None
