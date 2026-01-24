@@ -89,6 +89,33 @@ class MetadataGenerator:
                 "images": sorted(images),  # Sort for consistency
             }
 
+    def _parse_image_name(self, filename: str) -> dict:
+        """Extract set info from filename if it follows the set naming pattern.
+
+        Pattern: set_{set_id}_{index}.{ext}
+        Example: set_beach_1.jpg -> {"set_id": "beach", "set_index": 1}
+        """
+        if not filename.startswith("set_"):
+            return {"set_id": None, "set_index": None}
+
+        # Remove extension
+        name_without_ext = filename.rsplit(".", 1)[0]
+        parts = name_without_ext.split("_")
+
+        # Need at least 3 parts: "set", set_id, index
+        if len(parts) < 3:
+            return {"set_id": None, "set_index": None}
+
+        try:
+            # Last part should be numeric index
+            set_index = int(parts[-1])
+            # Everything between "set" and index is the set_id
+            set_id = "_".join(parts[1:-1])
+            return {"set_id": set_id, "set_index": set_index}
+        except ValueError:
+            # If index is not numeric, not a valid set image
+            return {"set_id": None, "set_index": None}
+
     def _generate_images(self) -> None:
         """Generate images section with metadata for each image."""
         self.metadata["images"] = {}
@@ -99,6 +126,9 @@ class MetadataGenerator:
             for image_name in struct["images"]:
                 path = Path(struct["path"]) / image_name
                 if path.exists():
+                    # Parse set info from filename
+                    set_info = self._parse_image_name(image_name)
+
                     all_images.append(
                         (
                             image_name,
@@ -108,6 +138,8 @@ class MetadataGenerator:
                                 "product": None,  # Initially untagged
                                 "settings_source": "default",
                                 "settings": None,  # No custom settings initially
+                                "set_id": set_info["set_id"],
+                                "set_index": set_info["set_index"],
                             },
                         )
                     )

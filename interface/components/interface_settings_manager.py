@@ -271,22 +271,21 @@ class InterfaceSettingsManager:
             # Get settings based on source priority (custom > product > content > default)
             # Be resilient if settings_source says 'custom' but settings are None
             if settings_source == "custom" and image_data.get("settings"):
-                # Custom settings are stored directly in image_data when present
                 current_settings = {"settings": image_data["settings"]}
-                logger.debug("Using custom settings from image data")
             elif settings_source == "product" and product:
                 current_settings = self.metadata_editor.get_settings("product", product, content_type)
-                logger.debug(f"Using product settings for {product}")
-            elif settings_source == "content":  # Just check settings_source is "content"
+            elif settings_source == "content":
                 current_settings = self.metadata_editor.get_settings("content_type", content_type)
-                logger.debug(f"Using content settings for {content_type}")
             else:
                 # Default is the fallback
                 current_settings = self.metadata_editor.get_settings("default")
-                logger.debug("Using default settings")
+
+            # Fallback to passed data if retrieval fails
+            if not current_settings or not current_settings.get("settings"):
+                logger.warning("Falling back to passed settings_data in render_text_settings")
+                current_settings = {"settings": settings_data}
 
             if not current_settings:
-                logger.debug(f"No valid settings found for source: {settings_source}")
                 st.error("No valid settings found")
                 return
 
@@ -582,9 +581,36 @@ class InterfaceSettingsManager:
             return image_data.get("settings")
 
         except Exception as e:
+            print(f"CRITICAL ERROR in get_current_settings: {str(e)}")
+            import traceback
+            traceback.print_exc()
             logger.error(f"Error getting settings: {str(e)}")
-            logger.error(f"Full exception: {str(e.__class__.__name__)}: {str(e)}")
-            return None
+            
+            # Fallback to hardcoded default to keep app alive
+            logger.warning("Using hardcoded fallback settings")
+            return {
+                "base_settings": {"default_text_type": "plain"},
+                "text_settings": {
+                    "plain": {
+                        "font_size": 70,
+                        "font": "assets.fonts.tiktokfont.ttf",
+                        "style_type": "outline_width",
+                        "style_value": 4,
+                        "colors": [{"text": "#FFFFFF", "outline": "#000000"}],
+                        "position": {"vertical": [0.45, 0.55], "horizontal": [0.45, 0.55], "vertical_jitter": 0.01, "horizontal_jitter": 0.02},
+                        "margins": {"top": 0.05, "bottom": 0.05, "left": 0.1, "right": 0.1}
+                    },
+                    "highlight": {
+                        "font_size": 70,
+                        "font": "assets.fonts.tiktokfont.ttf",
+                        "style_type": "corner_radius",
+                        "style_value": 20,
+                        "colors": [{"text": "#000000", "background": "#FFFFFF"}],
+                        "position": {"vertical": [0.45, 0.55], "horizontal": [0.45, 0.55], "vertical_jitter": 0.01, "horizontal_jitter": 0.02},
+                        "margins": {"top": 0.05, "bottom": 0.05, "left": 0.05, "right": 0.05}
+                    }
+                }
+            }
 
     def handle_text_type_change(self, new_text_type: str):
         """Handle changing text type in settings"""
@@ -1697,6 +1723,59 @@ class InterfaceSettingsManager:
                                 preview_path.unlink()
                             del st.session_state.preview_image_path
                             st.rerun()
+
+                # Batch Generation Section
+                st.divider()
+                st.subheader("🎬 Batch Generation")
+
+                # Controls
+                col_gen1, col_gen2 = st.columns(2)
+                with col_gen1:
+                    variations = st.number_input(
+                        "Number of variations",
+                        min_value=1,
+                        max_value=10,
+                        value=2,
+                        help="How many variations to generate from the captions"
+                    )
+                with col_gen2:
+                    allow_dupes = st.checkbox(
+                        "Allow duplicates for 'all' product",
+                        value=False,
+                        help="If enabled, 'all' product can use images even with prevent_duplicates=true"
+                    )
+
+                # Generate button
+                if st.button("Generate All Variations", type="primary", use_container_width=True):
+                    with st.spinner("Generating slides..."):
+                        try:
+                            from generation.generate import Generator
+                            from content_manager.captions import CaptionsHelper
+
+                            # Load captions
+                            captions_data = CaptionsHelper.get_captions(
+                                self.base_path / "captions.csv",
+                                content_types=self.content_types,
+                                products=self.products,
+                                separator=self.separator
+                            )
+
+                            # Generate
+                            generator = Generator(self.base_path, self.metadata, captions_data)
+                            output_path = generator.generate(variations, allow_dupes)
+
+                            st.success(f"✅ Generated {variations} variations to {output_path}")
+
+                            # Open folder button
+                            col_open1, col_open2 = st.columns([1, 2])
+                            with col_open1:
+                                if st.button("Open Output Folder"):
+                                    import subprocess
+                                    subprocess.run(["open", str(output_path)])
+
+                        except Exception as e:
+                            logger.error(f"Generation failed: {str(e)}")
+                            st.error(f"❌ Generation failed: {str(e)}")
 
                 # Show captions if available
                 if captions:

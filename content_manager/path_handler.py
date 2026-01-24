@@ -127,7 +127,7 @@ class PathValidator(StrictValidator):
         In non-strict mode, unexpected folders become warnings so the UI can launch.
         """
         try:
-            allowed = {name.lower() for name in self.content_types} | {"metadata"}
+            allowed = {name.lower() for name in self.content_types} | {"metadata", "output"}
 
             for item in base_path.iterdir():
                 if item.name.startswith("."):

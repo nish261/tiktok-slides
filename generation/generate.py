@@ -1,7 +1,7 @@
 from config.logging import logger
 import random
 from text.generate_image import generate_image
-from PIL import Image  # type: ignore
+from PIL import Image, ImageEnhance  # type: ignore
 from typing import List, Optional, Union
 from pathlib import Path
 
@@ -47,6 +47,34 @@ class Generator:
         logger.debug(f"Using output path: {output_path}")
         return output_path
 
+    def _get_set_images(self, content_type: str, set_id: str) -> List[str]:
+        """Get all images for a given set in a content type, sorted by index.
+
+        Args:
+            content_type: The content type folder to search in
+            set_id: The set identifier
+
+        Returns:
+            List of image filenames belonging to the set, sorted by index
+        """
+        if not set_id:
+            return []
+
+        # Get all images for this content type
+        all_images = self.metadata.data["structure"][content_type]["images"]
+
+        # Filter for set images with matching set_id
+        set_images = []
+        for img_name in all_images:
+            img_data = self.metadata.data["images"].get(img_name, {})
+            if img_data.get("set_id") == set_id and img_data.get("content_type") == content_type:
+                set_images.append((img_name, img_data.get("set_index", 0)))
+
+        # Sort by set_index
+        set_images.sort(key=lambda x: x[1])
+
+        return [img_name for img_name, _ in set_images]
+
     def generate(
         self,
         variations: int = 2,
@@ -67,6 +95,10 @@ class Generator:
         # Validate and get output path
         output_path = self._validate_output_path(output_path)
 
+        # Check if CSV has set_id column
+        has_set_id = self.captions.get("has_set_id", False)
+        set_ids = self.captions.get("set_ids", [])
+
         import gc
 
         gc_post_counter = (
@@ -75,14 +107,17 @@ class Generator:
 
         """
         Example header structure:
-        headers = ['product_hook', 'hook', 'product_filler', 'filler', ...]
-        For idx=1: headers[0] = 'product_hook' -> 'hook'
-        For idx=2: headers[2] = 'product_filler' -> 'filler'
+        Without set_id: ['product_hook', 'hook', 'product_filler', 'filler', ...]
+        With set_id: ['set_id', 'product_hook', 'hook', 'product_filler', 'filler', ...]
+        For idx=1: headers[0 or 1] = 'product_hook' -> 'hook'
+        For idx=2: headers[2 or 3] = 'product_filler' -> 'filler'
         And so on
         """
+        # Account for set_id column offset
+        header_offset = 1 if has_set_id else 0
         headers_map = {
-            i: self.captions["headers"][(i - 1) * 2].split("_")[1]  # Simpler indexing
-            for i in range(1, len(self.captions["headers"]) // 2 + 1)
+            i: self.captions["headers"][header_offset + (i - 1) * 2].split("_")[1]
+            for i in range(1, (len(self.captions["headers"]) - header_offset) // 2 + 1)
         }
 
         for variation_num in range(1, variations + 1):
@@ -98,6 +133,10 @@ class Generator:
                 )  # Create directory once per post
                 logger.info(f"Processing post {post_num}")
 
+                # Get set_id for this row if it exists
+                current_set_id = set_ids[post_num - 1] if has_set_id and post_num <= len(set_ids) else ""
+                use_set = bool(current_set_id and current_set_id.strip())
+
                 # Track used images for duplicate prevention
                 used_images = {
                     content_type: {
@@ -107,8 +146,18 @@ class Generator:
                     for content_type in self.metadata.data["content_types"]
                 }
 
+                # If using sets, pre-load all set images for validation
+                set_images_cache = {}
+                if use_set:
+                    logger.info(f"Using image set: {current_set_id}")
+                    for content_type in self.metadata.data["content_types"]:
+                        set_images_cache[content_type] = self._get_set_images(content_type, current_set_id)
+                        logger.debug(f"Found {len(set_images_cache[content_type])} images for set '{current_set_id}' in {content_type}")
+
                 # Process each content piece in the row
-                for idx, (product, content) in enumerate(zip(row[::2], row[1::2]), 1):
+                # Account for set_id column offset in row slicing
+                row_offset = 1 if has_set_id else 0
+                for idx, (product, content) in enumerate(zip(row[row_offset::2], row[row_offset + 1::2]), 1):
                     content_type = headers_map[idx]
 
                     logger.debug(
@@ -120,13 +169,51 @@ class Generator:
                         continue
 
                     # Generate and save image
-                    image = self._generate_single_image(
-                        content_type=content_type,
-                        product=product,
-                        text=content,
-                        used_images=used_images,
-                        allow_all_duplicates=allow_all_duplicates,
-                    )
+                    if use_set:
+                        # Use set image (sequential selection)
+                        set_images = set_images_cache.get(content_type, [])
+                        if not set_images:
+                            raise ValueError(
+                                f"Set '{current_set_id}' has no images for content type '{content_type}'. "
+                                f"Expected images matching pattern: set_{current_set_id}_*.* in {content_type}/ folder"
+                            )
+
+                        # Use the first available set image (they're already sorted by index)
+                        if len(set_images) < 1:
+                            raise ValueError(
+                                f"Set '{current_set_id}' needs at least 1 image for '{content_type}'"
+                            )
+
+                        selected_image_name = set_images[0]
+                        content_path = self.base_path / content_type
+                        base_image = Image.open(content_path / selected_image_name)
+
+                        # Get settings and generate image with text
+                        image_settings = self._get_image_settings(selected_image_name, content_type)
+                        text_type = image_settings["base_settings"]["text_type"]
+
+                        image = generate_image(
+                            base_image=base_image,
+                            text=content,
+                            settings=image_settings["text_settings"][text_type],
+                            text_type=text_type,
+                            colour_index=random.randint(
+                                0, len(image_settings["text_settings"][text_type]["colors"]) - 1
+                            ),
+                        )
+                        base_image.close()
+                    else:
+                        # Use normal random selection
+                        image = self._generate_single_image(
+                            content_type=content_type,
+                            product=product,
+                            text=content,
+                            used_images=used_images,
+                            allow_all_duplicates=allow_all_duplicates,
+                        )
+
+                    # Apply slight randomization for metadata/hash uniqueness
+                    image = self._randomize_image_data(image)
 
                     # Save image
                     image_path = post_path / f"{idx}.png"
@@ -139,6 +226,45 @@ class Generator:
                 gc_post_counter += 1
                 if gc_post_counter % 5 == 0:  # Every 5 images
                     gc.collect()  # Force garbage collection
+
+        # Return the actual output path used for reporting
+        return output_path
+
+    def _randomize_image_data(self, image: Image.Image) -> Image.Image:
+        """Apply extremely subtle variations to image to change file hash/metadata while keeping visuals nearly identical"""
+
+        # 1. Extremely Subtle Brightness Adjustment (practically imperceptible)
+        # Reduced range from 0.99-1.01 to 0.998-1.002 for minimal visual impact
+        enhancer = ImageEnhance.Brightness(image)
+        factor = random.uniform(0.998, 1.002)
+        image = enhancer.enhance(factor)
+
+        # 2. Single pixel minimal noise (just for metadata/hash difference)
+        # Only changing by 1 value maximum to keep visual impact near zero
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        width, height = image.size
+        x = random.randint(0, width - 1)
+        y = random.randint(0, height - 1)
+
+        try:
+            pixel = image.getpixel((x, y))
+            # Handle both integer (L) and tuple (RGB) pixels, though we converted to RGB
+            if isinstance(pixel, tuple):
+                r, g, b = pixel
+                # Only change by +1 or 0 (never -1) to minimize impact
+                r = min(255, r + random.choice([0, 1]))
+                image.putpixel((x, y), (r, g, b))
+            else:
+                # Fallback for safety
+                v = pixel
+                v = min(255, v + random.choice([0, 1]))
+                image.putpixel((x, y), v)
+        except Exception as e:
+            logger.warning(f"Failed to apply pixel noise: {e}")
+
+        return image
 
     def _generate_single_image(
         self,

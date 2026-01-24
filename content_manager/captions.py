@@ -137,10 +137,23 @@ class CaptionsValidator(StrictValidator):
             self.add_error("Headers cannot be empty or whitespace")
             return False
 
-        # 4. Check product header format - with detailed logging
-        logger.debug(f"Raw headers received: {headers}")
+        # 4. Check for optional set_id column (must be first if present)
+        has_set_id = False
+        header_offset = 0
+        if headers[0].lower() == "set_id":
+            has_set_id = True
+            header_offset = 1
+            logger.debug("Found optional set_id column at position 0")
 
-        for header in headers:
+        # Store for later use
+        self.has_set_id = has_set_id
+
+        # 5. Check product header format - with detailed logging
+        # Skip set_id column if present
+        content_headers_list = headers[header_offset:]
+        logger.debug(f"Raw headers received: {content_headers_list}")
+
+        for header in content_headers_list:
             # Skip non-product headers
             if not header.lower().startswith("product"):
                 logger.debug(f"Skipping non-product header: {header}")
@@ -164,9 +177,9 @@ class CaptionsValidator(StrictValidator):
 
             logger.debug(f"Valid product header: {header} -> type: {parts[1]}")
 
-        # 5. Check content/product pairs
-        product_headers = [h for h in headers if h.startswith("product_")]
-        content_headers = [h for h in headers if not h.startswith("product_")]
+        # 6. Check content/product pairs (excluding set_id)
+        product_headers = [h for h in content_headers_list if h.startswith("product_")]
+        content_headers = [h for h in content_headers_list if not h.startswith("product_")]
 
         for content_header in content_headers:
             if f"product_{content_header}" not in product_headers:
@@ -175,8 +188,8 @@ class CaptionsValidator(StrictValidator):
                 )
                 return False
 
-        # 6. Store valid content types
-        self.content_types = set(h for h in headers if not h.startswith("product_"))
+        # 7. Store valid content types (excluding set_id)
+        self.content_types = set(h for h in content_headers_list if not h.startswith("product_"))
 
         return True
 
@@ -737,13 +750,16 @@ class CaptionsHelper:
             for row in reader:
                 rows.append(row)
 
+        # Check if set_id column exists
+        has_set_id = headers[0].lower() == "set_id" if headers else False
+
         # Initialize structure
         by_type: Dict[str, Dict[str, List[str]]] = {
             content_type: {product: [] for product in products.get(content_type, [])}
             for content_type in content_types
         }
 
-        # Map content/product columns per type
+        # Map content/product columns per type (account for set_id offset)
         product_cols = {
             ct: [i for i, h in enumerate(headers) if h == f"product_{ct}"]
             for ct in content_types
@@ -751,6 +767,13 @@ class CaptionsHelper:
         content_cols = {
             ct: [i for i, h in enumerate(headers) if h == ct] for ct in content_types
         }
+
+        # Extract set_ids if column exists
+        set_ids = []
+        if has_set_id:
+            for row in rows:
+                set_id = row[0].strip() if row and len(row) > 0 else ""
+                set_ids.append(set_id)
 
         for row in rows:
             for ct in content_types:
@@ -761,4 +784,10 @@ class CaptionsHelper:
                         if product and content and product in by_type.get(ct, {}):
                             by_type[ct][product].append(content)
 
-        return {"headers": headers, "captions": rows, "by_type": by_type}
+        return {
+            "headers": headers,
+            "captions": rows,
+            "by_type": by_type,
+            "has_set_id": has_set_id,
+            "set_ids": set_ids if has_set_id else []
+        }
