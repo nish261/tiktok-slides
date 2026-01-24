@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw, ImageFont
+from typing import Optional, Tuple
 try:
     # Emoji rendering helper; falls back to Pillow if unavailable
     from pilmoji import Pilmoji  # type: ignore
@@ -38,7 +39,7 @@ def draw_wrapped_text(
     background_color: str,
     highlight_padding: int = 2,
     corner_radius: int = 15,
-    base_image: Image.Image | None = None,
+    base_image: Optional[Image.Image] = None,
 ) -> None:
     """Draw wrapped text with highlights, treating each \n as a line break"""
     

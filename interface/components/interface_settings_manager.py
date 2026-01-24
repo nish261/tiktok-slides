@@ -1724,6 +1724,28 @@ class InterfaceSettingsManager:
                             del st.session_state.preview_image_path
                             st.rerun()
 
+                # Metadata Refresh Section
+                st.divider()
+                st.subheader("🔄 Metadata Management")
+
+                col_refresh1, col_refresh2 = st.columns(2)
+                with col_refresh1:
+                    st.markdown("**Refresh metadata** when you add new images to folders")
+                with col_refresh2:
+                    if st.button("🔄 Refresh Metadata", use_container_width=True):
+                        try:
+                            # Delete metadata file
+                            metadata_file = self.base_path / "metadata.json"
+                            if metadata_file.exists():
+                                metadata_file.unlink()
+                                st.success("✅ Metadata deleted! Reloading page...")
+                                st.rerun()
+                            else:
+                                st.warning("No metadata file found")
+                        except Exception as e:
+                            logger.error(f"Failed to refresh metadata: {str(e)}")
+                            st.error(f"❌ Failed to refresh: {str(e)}")
+
                 # Batch Generation Section
                 st.divider()
                 st.subheader("🎬 Batch Generation")

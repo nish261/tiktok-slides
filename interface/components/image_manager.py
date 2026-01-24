@@ -69,7 +69,10 @@ class ImageManager:
                 logger.debug(f"Using original image path: {image_path}")
             
             # Display the image
-            st.image(str(image_path), use_container_width=True)
+            try:
+                st.image(str(image_path), use_column_width=True)
+            except TypeError:
+                st.image(str(image_path))
             
         except Exception as e:
             logger.error(f"Error displaying image: {str(e)}")

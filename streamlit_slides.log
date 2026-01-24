@@ -1,0 +1,21 @@
+29/11 14:50:04 - SlideManager - CRITICAL - Validation error: Duplicate image names found:
+[fact/gen_0.png, proof/gen_0.png]
+[fact/gen_1.png, proof/gen_1.png]
+[fact/gen_2.png, proof/gen_2.png]
+[fact/gen_3.png, proof/gen_3.png]
+[fact/gen_4.png, proof/gen_4.png]
+29/11 14:50:04 - SlideManager - CRITICAL - Validation error: Duplicate image names found:
+[fact/gen_0.png, proof/gen_0.png]
+[fact/gen_1.png, proof/gen_1.png]
+[fact/gen_2.png, proof/gen_2.png]
+[fact/gen_3.png, proof/gen_3.png]
+[fact/gen_4.png, proof/gen_4.png]
+
+No warnings
+No errors
+Traceback (most recent call last):
+  File "/Users/nishchalasri/tiktok-slides/run_slides_app.py", line 17, in <module>
+    sm.open_interface()
+  File "/Users/nishchalasri/tiktok-slides/main.py", line 159, in open_interface
+    raise ValueError("cant load interface bc validation is False")
+ValueError: cant load interface bc validation is False
