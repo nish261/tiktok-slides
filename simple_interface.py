@@ -87,7 +87,7 @@ with tab1:
             captions_data = CaptionsHelper.get_captions(
                 captions_path,
                 content_types=set(content_types),
-                products=sm.products,
+                products=sm.content_handler.products,
                 separator=","
             )
 
@@ -193,7 +193,7 @@ with tab2:
                 captions_data = CaptionsHelper.get_captions(
                     sm.base_path / "captions.csv",
                     content_types=set(sm.metadata.data["content_types"]),
-                    products=sm.products,
+                    products=sm.content_handler.products,
                     separator=","
                 )
 
