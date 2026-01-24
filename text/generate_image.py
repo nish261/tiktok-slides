@@ -161,6 +161,7 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
             pass
         else:
             # EXTRA captions - use extra_caption_settings if available
+            # VERTICAL POSITION
             if extra_settings and extra_settings.get("vertical_position"):
                 v_pos_extra = extra_settings["vertical_position"]
                 if isinstance(v_pos_extra, list) and len(v_pos_extra) >= 2:
@@ -172,6 +173,7 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
                 # Fallback: position at 0.65 (lower portion of image)
                 local_settings["height_center_position"] = 0.65
             
+            # HORIZONTAL POSITION
             if extra_settings and extra_settings.get("horizontal_position"):
                 h_pos_extra = extra_settings["horizontal_position"]
                 if isinstance(h_pos_extra, list) and len(h_pos_extra) >= 2:
@@ -179,7 +181,10 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
                 else:
                     h_pos_val = h_pos_extra[0] if isinstance(h_pos_extra, list) else float(h_pos_extra)
                 local_settings["width_center_position"] = h_pos_val
-            # else: keep same X as main caption (original behavior)
+            else:
+                # Fallback: position at center 0.5
+                # CRITICAL: Do NOT use main caption's X position (width_center_position)
+                local_settings["width_center_position"] = 0.5
         
         img = renderer(**local_settings)
     

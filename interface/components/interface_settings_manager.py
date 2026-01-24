@@ -1852,6 +1852,10 @@ class InterfaceSettingsManager:
                         st.session_state.extra_caption_settings["horizontal_position"] = [x_pos, x_pos]
                         st.session_state.extra_caption_settings["vertical_position"] = [y_pos, y_pos]
                         
+                        # CRITICAL: Also update the widget keys so the sliders reflect the change
+                        st.session_state["extra_caption_h_pos"] = (x_pos, x_pos)
+                        st.session_state["extra_caption_v_pos"] = (y_pos, y_pos)
+                        
                         st.success(f"✅ EXTRA caption position: X={x_pos:.4f}, Y={y_pos:.4f}")
                         st.info("💡 Enable 'Separate settings for extra captions' to use this position")
                     

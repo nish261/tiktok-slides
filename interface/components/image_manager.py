@@ -87,9 +87,9 @@ class ImageManager:
                 img = Image.open(str(image_path))
                 orig_width, orig_height = img.size
                 
-                # Resize image to fit container while maintaining aspect ratio
-                # This fixes the zoom issue
-                display_width = 400  # Fixed width for clickable display
+                # Resize image to fit container properly while maintaining aspect ratio
+                # Increased width for better visibility, standard column is ~700px
+                display_width = 600  
                 aspect_ratio = orig_height / orig_width
                 display_height = int(display_width * aspect_ratio)
                 img_resized = img.resize((display_width, display_height), Image.Resampling.LANCZOS)
@@ -101,17 +101,21 @@ class ImageManager:
                 else:
                     st.info("👆 **Click to set EXTRA CAPTION position** (Caption 2)")
                 
-                # Display clickable image at proper size
+                # Display clickable image
                 coords = streamlit_image_coordinates(
                     img_resized,
-                    key=f"position_picker_{target_caption}"
+                    key=f"position_picker_{target_caption}",
+                    width=display_width,  # Explicitly set width to match our resized image
                 )
                 
                 # If clicked, calculate normalized position with high precision
-                # Note: coords are relative to the resized image, so normalize directly
                 if coords is not None:
-                    x_norm = round(coords["x"] / display_width, 4)
-                    y_norm = round(coords["y"] / display_height, 4)
+                    # Check for potential bounds errors
+                    click_x = max(0, min(coords["x"], display_width))
+                    click_y = max(0, min(coords["y"], display_height))
+                    
+                    x_norm = round(click_x / display_width, 4)
+                    y_norm = round(click_y / display_height, 4)
                     
                     # Store the clicked position with target info
                     st.session_state.clicked_position = {
