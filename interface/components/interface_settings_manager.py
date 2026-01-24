@@ -1736,7 +1736,8 @@ class InterfaceSettingsManager:
                                 "V Jitter",
                                 min_value=0.0,
                                 max_value=0.1,
-                                value=base_position.get("vertical_jitter", 0.0),
+                                value=float(base_position.get("vertical_jitter", 0.0)),
+                                step=0.01,
                                 key="extra_caption_v_jitter"
                             )
                             extra_caption_settings["vertical_jitter"] = extra_v_jitter
@@ -1760,7 +1761,8 @@ class InterfaceSettingsManager:
                                 "H Jitter",
                                 min_value=0.0,
                                 max_value=0.1,
-                                value=base_position.get("horizontal_jitter", 0.0),
+                                value=float(base_position.get("horizontal_jitter", 0.0)),
+                                step=0.01,
                                 key="extra_caption_h_jitter"
                             )
                             extra_caption_settings["horizontal_jitter"] = extra_h_jitter
