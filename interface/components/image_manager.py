@@ -87,31 +87,36 @@ class ImageManager:
                 img = Image.open(str(image_path))
                 img_width, img_height = img.size
                 
-                # Show instruction
-                st.info("👆 **Click on the image to set text position**")
+                # Which caption are we positioning?
+                target_caption = st.session_state.get("position_target", "main")
+                if target_caption == "main":
+                    st.info("👆 **Click to set MAIN CAPTION position** (Caption 1)")
+                else:
+                    st.info("👆 **Click to set EXTRA CAPTION position** (Caption 2)")
                 
                 # Display clickable image
                 coords = streamlit_image_coordinates(
                     img,
-                    key="position_picker"
+                    key=f"position_picker_{target_caption}"
                 )
                 
-                # If clicked, calculate normalized position
+                # If clicked, calculate normalized position with high precision
                 if coords is not None:
-                    x_norm = coords["x"] / img_width
-                    y_norm = coords["y"] / img_height
+                    x_norm = round(coords["x"] / img_width, 4)
+                    y_norm = round(coords["y"] / img_height, 4)
                     
-                    # Store the clicked position
+                    # Store the clicked position with target info
                     st.session_state.clicked_position = {
                         "x": x_norm,
                         "y": y_norm,
                         "raw_x": coords["x"],
                         "raw_y": coords["y"],
                         "img_width": img_width,
-                        "img_height": img_height
+                        "img_height": img_height,
+                        "target": target_caption
                     }
                     
-                    st.success(f"📍 Position set to: ({x_norm:.2f}, {y_norm:.2f})")
+                    st.success(f"📍 **{target_caption.upper()}** position: X={x_norm:.4f}, Y={y_norm:.4f}")
                     st.caption(f"Pixel: ({coords['x']}, {coords['y']}) of ({img_width}x{img_height})")
                 
                 # Show Apply button
@@ -135,11 +140,20 @@ class ImageManager:
                 except TypeError:
                     st.image(str(image_path))
                 
-                # Show "Set Position" button if library is available and preview exists
+                # Show position buttons if library is available and preview exists
                 if HAS_IMAGE_COORDINATES and "preview_image_path" in st.session_state:
-                    if st.button("📍 Click to Set Position", use_container_width=True):
-                        st.session_state.click_position_mode = True
-                        st.rerun()
+                    st.markdown("**📍 Set Caption Position:**")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("📍 Caption 1 (Main)", use_container_width=True, key="pos_main"):
+                            st.session_state.click_position_mode = True
+                            st.session_state.position_target = "main"
+                            st.rerun()
+                    with col2:
+                        if st.button("📍 Caption 2 (Extra)", use_container_width=True, key="pos_extra"):
+                            st.session_state.click_position_mode = True
+                            st.session_state.position_target = "extra"
+                            st.rerun()
             
         except Exception as e:
             logger.error(f"Error displaying image: {str(e)}")
