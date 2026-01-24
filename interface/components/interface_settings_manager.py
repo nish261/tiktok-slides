@@ -1788,19 +1788,19 @@ class InterfaceSettingsManager:
                         mcol1, mcol2, mcol3, mcol4 = st.columns(4)
                         with mcol1:
                             extra_margin_top = st.number_input("Top", min_value=0, max_value=500, 
-                                value=base_margins.get("top", 50), key="extra_margin_top")
+                                value=int(base_margins.get("top", 50)), key="extra_margin_top")
                             extra_caption_settings["margin_top"] = extra_margin_top
                         with mcol2:
                             extra_margin_bottom = st.number_input("Bottom", min_value=0, max_value=500,
-                                value=base_margins.get("bottom", 50), key="extra_margin_bottom")
+                                value=int(base_margins.get("bottom", 50)), key="extra_margin_bottom")
                             extra_caption_settings["margin_bottom"] = extra_margin_bottom
                         with mcol3:
                             extra_margin_left = st.number_input("Left", min_value=0, max_value=500,
-                                value=base_margins.get("left", 50), key="extra_margin_left")
+                                value=int(base_margins.get("left", 50)), key="extra_margin_left")
                             extra_caption_settings["margin_left"] = extra_margin_left
                         with mcol4:
                             extra_margin_right = st.number_input("Right", min_value=0, max_value=500,
-                                value=base_margins.get("right", 50), key="extra_margin_right")
+                                value=int(base_margins.get("right", 50)), key="extra_margin_right")
                             extra_caption_settings["margin_right"] = extra_margin_right
                         
                         st.markdown("---")
