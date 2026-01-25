@@ -2136,8 +2136,8 @@ class InterfaceSettingsManager:
                 with col_gen2:
                     allow_dupes = st.checkbox(
                         "Allow duplicates for 'all' product",
-                        value=False,
-                        help="If enabled, 'all' product can use images even with prevent_duplicates=true"
+                        value=True,
+                        help="✅ ENABLE THIS for maximum variation! Rotates through all images, then cycles through again for more posts."
                     )
 
                 # Generate button

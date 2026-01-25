@@ -357,6 +357,14 @@ class Generator:
             content_type, product, used_images, allow_all_duplicates
         )
 
+        # If no available images and prevent_duplicates is True, reset used images and try again (cycling)
+        if not available_images and self._should_prevent_duplicates(content_type, product):
+            logger.info(f"All images used for {content_type}/{product}, resetting to cycle through again")
+            used_images[content_type][product] = []
+            available_images = self._get_available_images(
+                content_type, product, used_images, allow_all_duplicates
+            )
+
         if not available_images:
             raise ValueError(f"No available images for {content_type} - {product}")
 
