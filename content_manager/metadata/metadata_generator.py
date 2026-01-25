@@ -19,6 +19,7 @@ class MetadataGenerator:
         self._generate_products()
         self._generate_structure()
         self._generate_images()
+        self._generate_sets()  # NEW: Scan sets/ folder for image sets
         self._generate_untagged()
         self._generate_settings()
 
@@ -147,6 +148,43 @@ class MetadataGenerator:
         # Then add them in sorted order
         for image_name, image_data in sorted(all_images):
             self.metadata["images"][image_name] = image_data
+
+    def _generate_sets(self) -> None:
+        """Scan sets/ folder for image set subfolders.
+
+        Structure: sets/{set_name}/image1.jpg, image2.jpg, etc.
+        Each subfolder becomes a set with images sorted alphabetically.
+        """
+        sets_path = self.base_path / "sets"
+        self.metadata["sets"] = {}
+
+        if not sets_path.exists():
+            return  # No sets folder, skip
+
+        valid_extensions = {".png", ".jpg", ".jpeg", ".webp", ".PNG", ".JPG", ".JPEG", ".WEBP"}
+
+        # Scan each subfolder in sets/
+        for set_folder in sets_path.iterdir():
+            if not set_folder.is_dir() or set_folder.name.startswith("."):
+                continue  # Skip non-directories and hidden folders
+
+            set_name = set_folder.name
+
+            # Get all valid images in this set folder
+            images = []
+            for img_file in set_folder.iterdir():
+                if img_file.is_file() and img_file.suffix in valid_extensions:
+                    images.append(img_file.name)
+
+            # Sort alphabetically (this determines the order for captions)
+            images.sort()
+
+            # Store set metadata
+            self.metadata["sets"][set_name] = {
+                "path": str(set_folder),
+                "images": images,
+                "count": len(images)
+            }
 
     def _generate_untagged(self) -> None:
         """Generate untagged section - ONLY images in base folder that aren't in content folders."""

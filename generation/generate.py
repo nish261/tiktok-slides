@@ -98,6 +98,7 @@ class Generator:
         # Check if CSV has set_id column
         has_set_id = self.captions.get("has_set_id", False)
         set_ids = self.captions.get("set_ids", [])
+        is_sets_mode = self.captions.get("is_sets_mode", False)
 
         import gc
 
@@ -107,18 +108,27 @@ class Generator:
 
         """
         Example header structure:
+        Normal mode:
         Without set_id: ['product_hook', 'hook', 'product_filler', 'filler', ...]
         With set_id: ['set_id', 'product_hook', 'hook', 'product_filler', 'filler', ...]
-        For idx=1: headers[0 or 1] = 'product_hook' -> 'hook'
-        For idx=2: headers[2 or 3] = 'product_filler' -> 'filler'
-        And so on
+
+        Sets mode (simplified):
+        ['set_id', 'caption_1', 'caption_2', 'caption_3', ...]
+        Images come from sets/{set_id}/ folder, sorted alphabetically
         """
-        # Account for set_id column offset
-        header_offset = 1 if has_set_id else 0
-        headers_map = {
-            i: self.captions["headers"][header_offset + (i - 1) * 2].split("_")[1]
-            for i in range(1, (len(self.captions["headers"]) - header_offset) // 2 + 1)
-        }
+
+        # Handle simplified sets mode differently
+        if is_sets_mode:
+            # Sets mode: headers are caption_1, caption_2, etc.
+            logger.info("Using simplified sets mode (caption_1, caption_2, caption_3 format)")
+            headers_map = None  # Not needed in sets mode
+        else:
+            # Normal mode: Account for set_id column offset
+            header_offset = 1 if has_set_id else 0
+            headers_map = {
+                i: self.captions["headers"][header_offset + (i - 1) * 2].split("_")[1]
+                for i in range(1, (len(self.captions["headers"]) - header_offset) // 2 + 1)
+            }
 
         for variation_num in range(1, variations + 1):
 
@@ -137,6 +147,61 @@ class Generator:
                 current_set_id = set_ids[post_num - 1] if has_set_id and post_num <= len(set_ids) else ""
                 use_set = bool(current_set_id and current_set_id.strip())
 
+                # SETS MODE: Simplified format (set_id, caption_1, caption_2, caption_3)
+                if is_sets_mode and use_set:
+                    logger.info(f"Processing set '{current_set_id}' in sets mode")
+
+                    # Get images from sets/{set_id}/ folder
+                    set_info = self.metadata.data.get("sets", {}).get(current_set_id)
+                    if not set_info:
+                        raise ValueError(f"Set '{current_set_id}' not found in sets/ folder")
+
+                    set_images = set_info["images"]  # Already sorted alphabetically
+                    set_path = Path(set_info["path"])
+
+                    # Get captions from row (skip first column which is set_id)
+                    captions = [cell.strip() for cell in row[1:] if cell.strip()]
+
+                    if len(captions) != len(set_images):
+                        raise ValueError(
+                            f"Set '{current_set_id}' has {len(set_images)} images but {len(captions)} captions. "
+                            f"They must match! Images: {set_images}, Captions: {captions}"
+                        )
+
+                    # Generate each slide
+                    for idx, (image_name, caption) in enumerate(zip(set_images, captions), 1):
+                        image_path = set_path / image_name
+                        base_image = Image.open(image_path)
+
+                        # Use default settings for now (could be enhanced later)
+                        from text.generate_image import generate_image
+                        image_settings = self._get_default_settings()
+                        text_type = image_settings["base_settings"]["default_text_type"]
+
+                        image = generate_image(
+                            settings=image_settings,
+                            text_type=text_type,
+                            colour_index=random.randint(
+                                0, len(image_settings["text_settings"][text_type]["colors"]) - 1
+                            ),
+                            image_path=str(image_path),
+                            text=caption
+                        )
+                        base_image.close()
+
+                        # Apply randomization
+                        image = self._randomize_image_data(image)
+
+                        # Save image
+                        output_path_img = post_path / f"{idx}.png"
+                        image.save(output_path_img)
+                        image.close()
+                        logger.debug(f"Saved slide {idx} for post {post_num} in variation {variation_num}")
+
+                    # Skip normal processing for this row
+                    continue
+
+                # NORMAL MODE: Original logic
                 # Track used images for duplicate prevention
                 used_images = {
                     content_type: {
@@ -146,9 +211,9 @@ class Generator:
                     for content_type in self.metadata.data["content_types"]
                 }
 
-                # If using sets, pre-load all set images for validation
+                # If using sets (old format), pre-load all set images for validation
                 set_images_cache = {}
-                if use_set:
+                if use_set and not is_sets_mode:
                     logger.info(f"Using image set: {current_set_id}")
                     for content_type in self.metadata.data["content_types"]:
                         set_images_cache[content_type] = self._get_set_images(content_type, current_set_id)
@@ -156,7 +221,7 @@ class Generator:
 
                 # Process each content piece in the row
                 # Account for set_id column offset in row slicing
-                row_offset = 1 if has_set_id else 0
+                row_offset = 1 if (has_set_id and not is_sets_mode) else 0
                 for idx, (product, content) in enumerate(zip(row[row_offset::2], row[row_offset + 1::2]), 1):
                     content_type = headers_map[idx]
 
@@ -486,3 +551,16 @@ class Generator:
         except Exception as e:
             logger.error(f"Error getting settings for {image_name}: {str(e)}")
             raise ValueError(f"Failed to get settings for {image_name}: {str(e)}")
+
+    def _get_default_settings(self) -> dict:
+        """Load default settings template for sets mode"""
+        from content_manager.settings.settings_constants import DEFAULT_TEMPLATE
+        import json
+
+        logger.debug(f"Loading default template for sets mode: {DEFAULT_TEMPLATE}")
+        try:
+            with open(DEFAULT_TEMPLATE) as f:
+                return json.load(f)
+        except (IOError, json.JSONDecodeError) as e:
+            logger.error(f"Failed to load default template: {str(e)}")
+            raise

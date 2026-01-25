@@ -753,6 +753,14 @@ class CaptionsHelper:
         # Check if set_id column exists
         has_set_id = headers[0].lower() == "set_id" if headers else False
 
+        # Check if using simplified sets mode (caption_1, caption_2, caption_3 format)
+        # Sets mode: headers are like "set_id, caption_1, caption_2, caption_3"
+        is_sets_mode = (
+            has_set_id and
+            len(headers) > 1 and
+            any(h.startswith("caption_") for h in headers[1:])
+        )
+
         # Initialize structure
         by_type: Dict[str, Dict[str, List[str]]] = {
             content_type: {product: [] for product in products.get(content_type, [])}
@@ -789,5 +797,6 @@ class CaptionsHelper:
             "captions": rows,
             "by_type": by_type,
             "has_set_id": has_set_id,
-            "set_ids": set_ids if has_set_id else []
+            "set_ids": set_ids if has_set_id else [],
+            "is_sets_mode": is_sets_mode  # NEW: Flag for simplified sets format
         }
