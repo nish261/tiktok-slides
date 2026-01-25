@@ -6,9 +6,11 @@ Use Claude to automatically generate CSV files for your TikTok Slides Generator.
 
 1. **CLAUDE_PROMPT_CSV_GENERATOR.md** - The prompt to use with Claude
 2. **Example files to upload to Claude:**
-   - `example_for_claude.csv` - Regular 2-slide format with multi-captions
-   - `example_sets_for_claude.csv` - Sets mode format (3 slides)
-   - `example_advanced_for_claude.csv` - Advanced 4-slide format
+   - `example_2_slides.csv` - Simple 2-slide format (hook + CTA)
+   - `example_4_slides.csv` - Medium 4-slide format (tutorials, tips)
+   - `example_6_slides.csv` - Advanced 6-slide format (stories, guides)
+   - `example_10_slides_max.csv` - Maximum 10-slide format (countdowns, lists)
+   - `example_sets_3_slides.csv` - Sets mode for specific image sequences
 
 ## How to Use
 
@@ -16,10 +18,12 @@ Use Claude to automatically generate CSV files for your TikTok Slides Generator.
 Go to claude.ai or your Claude interface
 
 ### Step 2: Upload Example Files
-Upload one or more example CSV files depending on what you need:
-- **2 slides, random images?** → Upload `example_for_claude.csv`
-- **Image sets (before/after)?** → Upload `example_sets_for_claude.csv`
-- **4+ slides?** → Upload `example_advanced_for_claude.csv`
+Upload the example CSV file that matches your desired format:
+- **2 slides (hook + CTA)?** → Upload `example_2_slides.csv`
+- **4 slides (tips, tutorials)?** → Upload `example_4_slides.csv`
+- **6 slides (stories, guides)?** → Upload `example_6_slides.csv`
+- **10 slides (countdowns, top 10 lists)?** → Upload `example_10_slides_max.csv`
+- **Image sets (before/after, sequences)?** → Upload `example_sets_3_slides.csv`
 
 ### Step 3: Copy the Prompt
 Open `CLAUDE_PROMPT_CSV_GENERATOR.md` and copy the prompt from "PROMPT START" to "PROMPT END"
