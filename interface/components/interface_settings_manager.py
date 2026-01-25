@@ -1681,9 +1681,12 @@ class InterfaceSettingsManager:
                     # Let's try to peek at the session state for the text area key
                     extra_text_key = f"extra_captions_text_{current_image}"
                     existing_text = st.session_state.get(extra_text_key, "")
-                    if not existing_text and image_data.get("settings", {}).get("extra_captions"):
-                         # Fallback if we saved text in settings (we don't currently save raw text there, just settings)
-                         pass
+
+                    # Safely check for extra_captions in settings
+                    settings = image_data.get("settings")
+                    if not existing_text and settings and isinstance(settings, dict):
+                        # Fallback if we saved text in settings (we don't currently save raw text there, just settings)
+                        pass
 
                     default_value = has_extra_metadata or bool(existing_text)
 
