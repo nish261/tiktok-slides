@@ -2062,27 +2062,29 @@ class InterfaceSettingsManager:
                                 "base_settings": settings_data.get("base_settings", {})
                             }
                             
-                            # Actually, a safer way is to use 'settings_data["text_settings"]' which usually holds the latest state
-                            # But wait, 'settings' variable in the Save button block (lines ~1945) was used.
-                            # 'settings' was defined WAY earlier? Or is it local to the save block?
-                            # Looking at previous context: 'settings' was passed into generate_preview or constructed locally.
-                            
-                            # Let's use the 'image_metadata["settings"]' which we tried to save, or reconstruct it.
-                            # Better: Copy the 'settings_data["text_settings"]' directly as that contains the modified values from UI
-                            
-                            # Correction: 'settings' variable was likely defined around line 1920 or available in scope.
-                            # If it's missing, we grab it from settings_data which accumulates UI changes.
-                            
-                            settings_to_apply = settings_data.get("text_settings", {})
-                            
-                            # Get latest extra caption settings directly from session state or settings reconstruction
-                            # Re-derive flags to ensure they are available in this scope
-                            use_multi_scope = st.session_state.get("multi_caption_mode", False)
-                            use_separate_scope = st.session_state.get("separate_caption_settings", False)
-                            
+                            # CRITICAL: Copy the COMPLETE settings_data structure
+                            # settings_data contains: {"text_settings": {...}, "base_settings": {...}}
+                            # We need to copy this entire structure, not just text_settings
+                            import copy
+                            settings_to_apply = copy.deepcopy(settings_data)
+
+                            print(f"\n🔄 APPLY TO ALL DEBUG:")
+                            print(f"Settings to apply keys: {settings_to_apply.keys()}")
+                            if "text_settings" in settings_to_apply:
+                                print(f"Text settings keys: {settings_to_apply['text_settings'].keys()}")
+                                if "plain" in settings_to_apply["text_settings"]:
+                                    plain_keys = settings_to_apply["text_settings"]["plain"].keys()
+                                    print(f"Plain text settings: {plain_keys}")
+
+                            # Get current multi-caption mode state
+                            current_image = st.session_state.selected_image
+                            use_multi_scope = st.session_state.get(f"multi_caption_mode_{current_image}", False)
+
+                            # Get extra caption settings if multi-caption is enabled
                             extra_settings_scope = None
-                            if use_multi_scope and use_separate_scope:
-                                extra_settings_scope = extra_caption_settings if 'extra_caption_settings' in locals() else st.session_state.get("extra_caption_settings")
+                            if use_multi_scope:
+                                extra_settings_scope = st.session_state.get("extra_caption_settings")
+                                print(f"Extra caption settings: {extra_settings_scope is not None}")
                             
                             # Iterate through all images in the category
                             category_images = self.metadata_data["structure"][content_type]["images"]
@@ -2093,16 +2095,16 @@ class InterfaceSettingsManager:
                                     continue # Skip current one as it's the source
                                 
                                 target_img_data = self.metadata_data["images"][img_name]
-                                
-                                # Deep copy settings to avoid shared state
-                                import copy
+
+                                # Deep copy the complete settings structure (already imported copy above)
                                 target_img_data["settings"] = copy.deepcopy(settings_to_apply)
                                 target_img_data["settings_source"] = "manual"
-                                
-                                # Copy extra caption settings
-                                if use_separate_scope and extra_settings_scope:
+
+                                # Copy extra caption settings if they exist
+                                if extra_settings_scope:
                                     target_img_data["extra_caption_settings"] = copy.deepcopy(extra_settings_scope)
                                 elif "extra_caption_settings" in target_img_data:
+                                    # Remove extra caption settings if source image doesn't have them
                                     del target_img_data["extra_caption_settings"]
                                     
                                 count += 1

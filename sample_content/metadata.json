@@ -8,7 +8,7 @@
       {
         "name": "all",
         "prevent_duplicates": false,
-        "current_count": 2,
+        "current_count": 1,
         "min_occurrences": 1
       }
     ],
