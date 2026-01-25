@@ -1,8 +1,8 @@
 product_slide1,slide1,product_slide2,slide2
 all,(I like chocolate),all,Buy this
 all,(I like chocolate),all,Link in bio
-all,(I like chocolate),all,Check profile
-all,(I like chocolate),all,Shop now
+all,(I like chocolate) || @username,all,Check profile || Follow me
+all,(I like chocolate) || New product!,all,Shop now || Limited time
 all,(Secret hack),all,Buy this
 all,(Secret hack),all,Link in bio
 all,(Secret hack),all,Check profile
