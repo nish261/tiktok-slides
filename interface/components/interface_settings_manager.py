@@ -2046,25 +2046,6 @@ class InterfaceSettingsManager:
                 if st.button(f"Apply to All Slides in '{content_type}'", type="secondary", use_container_width=True, help="Copy these settings (including Caption 2) to all images in this category"):
                     with st.spinner(f"Applying settings to all {len(self.metadata_data['structure'][content_type]['images'])} slides..."):
                         try:
-                            # Re-construct settings dict to ensure we have the latest values
-                            # This mirrors the construction done before generate_preview
-                            settings_to_apply = {
-                                "text_settings": {
-                                    "plain": {
-                                        # Force plain settings structure 
-                                        "font": current_text_settings.get("plain", {}).get("font", "tiktokfont"),
-                                        "font_size": current_text_settings.get("plain", {}).get("font_size", 50),
-                                        "style_type": current_text_settings.get("plain", {}).get("style_type", "outline_width"),
-                                        "style_value": current_text_settings.get("plain", {}).get("style_value", 5),
-                                        "colors": current_text_settings.get("plain", {}).get("colors", []),
-                                        "margins": current_text_settings.get("plain", {}).get("margins", {"top": 0.1, "bottom": 0.1, "left": 0.1, "right": 0.1}),
-                                        "position": current_text_settings.get("plain", {}).get("position", {"vertical": [0,1], "horizontal": [0,1]})
-                                    },
-                                    # Include highlight settings if needed, or just copy the whole current_text_settings if properly maintained
-                                },
-                                "base_settings": settings_data.get("base_settings", {})
-                            }
-                            
                             # CRITICAL: Copy the COMPLETE settings_data structure
                             # settings_data contains: {"text_settings": {...}, "base_settings": {...}}
                             # We need to copy this entire structure, not just text_settings
