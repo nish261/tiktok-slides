@@ -2023,7 +2023,7 @@ class InterfaceSettingsManager:
                 if st.button("Save Settings", type="primary", use_container_width=True):
                     # Update settings
                     image_metadata["settings"] = settings
-                    image_metadata["settings_source"] = "manual"
+                    image_metadata["settings_source"] = "custom"
                     
                     # Store extra caption settings in metadata if enabled
                     if use_separate_settings and extra_caption_settings:
@@ -2038,7 +2038,7 @@ class InterfaceSettingsManager:
                     self.metadata_editor.save_metadata()
                     
                     st.success("Settings saved!")
-                    st.session_state.settings_source = "manual"
+                    st.session_state.settings_source = "custom"
                     st.rerun()
 
                 # NEW: Apply to All Button
@@ -2082,7 +2082,7 @@ class InterfaceSettingsManager:
 
                                 # Deep copy the complete settings structure (already imported copy above)
                                 target_img_data["settings"] = copy.deepcopy(settings_to_apply)
-                                target_img_data["settings_source"] = "manual"
+                                target_img_data["settings_source"] = "custom"
 
                                 # Copy extra caption settings if they exist
                                 if extra_settings_scope:
@@ -2129,7 +2129,7 @@ class InterfaceSettingsManager:
                     variations = st.number_input(
                         "Number of variations",
                         min_value=1,
-                        max_value=10,
+                        max_value=100,
                         value=2,
                         help="How many variations to generate from the captions"
                     )
