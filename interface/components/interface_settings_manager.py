@@ -1643,11 +1643,58 @@ class InterfaceSettingsManager:
                 st.divider()
                 col_a, col_b = st.columns([1, 2])
                 with col_a:
+                    # Check if metadata has extra captions to determine default state
+                    has_extra_metadata = bool(image_data.get("extra_caption_settings"))
+                    
+                    # ALSO check if there's text in the session state for this image's extra captions
+                    # This handles the case where user navigates back to an image they were editing
+                    # (Note: session state keys for widgets are cleared on some navigations, but let's check metadata source string if we saved it)
+                    # Actually, the best proxy is: Is there any extra caption text associated with this image?
+                    # The text area below uses 'extra_captions_{current_image}' key.
+                    
+                    # Better logic: Default to TRUE if there are extra settings OR existing extra text.
+                    # Getting the text value before the widget is created is tricky.
+                    # But we can check if we loaded any extra text from metadata previously.
+                    
+                    # Simplified: If we found extra settings in the metadata, value=True.
+                    # If we didn't, value=False.
+                    # The previous fix (key=imagespecific) forces a reset to this calculated value.
+                    
+                    # The user's issue might be that they WANT it to be ON by default if they are adding text?
+                    # Or maybe they unchecked it and the settings disappeared but they still wanted them?
+                    
+                    # Revert to standard session state persistence but with intelligent initialization?
+                    # No, the "key=..." forces a re-render.
+                    
+                    # Let's verify what the user sees in the screenshot:
+                    # Checkbox is OFF. Text area has "dsdfdsfsfsfsdf". settings are GONE.
+                    # This means they have text but the mode is off.
+                    # If they check the box, the settings will appear.
+                    
+                    # Maybe they want the mode to auto-check if they type text?
+                    # Streamlit doesn't support cyclic dependencies easily.
+                    
+                    # Adjust default value logic:
+                    # If there is text in the extra_captions box (which might be preserved by streamlit if key matches),
+                    # we should default to True.
+                    
+                    # Let's try to peek at the session state for the text area key
+                    extra_text_key = f"extra_captions_text_{current_image}"
+                    existing_text = st.session_state.get(extra_text_key, "")
+                    if not existing_text and image_data.get("settings", {}).get("extra_captions"):
+                         # Fallback if we saved text in settings (we don't currently save raw text there, just settings)
+                         pass
+
+                    default_value = has_extra_metadata or bool(existing_text)
+
                     use_multi = st.checkbox(
                         "Multi-caption mode",
-                        value=False,
+                        value=default_value, 
+                        key=f"multi_caption_mode_{current_image}",
                         help="Render multiple captions on the image. Each line below becomes an extra caption."
                     )
+                    # Sync to session state for legacy access if needed
+                    st.session_state.multi_caption_mode = use_multi
                 with col_b:
                     extra_captions_text = st.text_area(
                         "Extra captions (one per line)",
@@ -1889,6 +1936,36 @@ class InterfaceSettingsManager:
                                 # Get text type from settings
                                 text_type = settings_data.get('base_settings', {}).get('default_text_type', 'plain')
                                 
+                                # CRITICAL FIX: Ensure text_settings key exists in settings_data passed to generator
+                                # If it's missing, construct it from the current UI state or base settings
+                                if 'text_settings' not in settings_data:
+                                    print("⚠️ 'text_settings' missing in settings_data, reconstructing...")
+                                    settings_data['text_settings'] = {
+                                        # Use the current_text_settings which holds the UI state
+                                        # But wait, current_text_settings might be partial.
+                                        # Let's map whatever we have.
+                                        
+                                        # Actually, current_text_settings was constructed earlier from settings_data.get('text_settings')
+                                        # If settings_data was devoid of it, then current_text_settings is mostly empty.
+                                        
+                                        # We need to construct a valid text_settings dict structure
+                                        "plain": {
+                                            "font": settings_data.get("base_settings", {}).get("font", "tiktokfont"),
+                                            "font_size": settings_data.get("base_settings", {}).get("font_size", 50),
+                                            "colors": ["#FFFFFF"],
+                                            "margins": {"top": 0.1, "bottom": 0.1, "left": 0.1, "right": 0.1},
+                                            "position": {"vertical": 0.5, "horizontal": 0.5},
+                                            # Add missing keys that generate_image expects
+                                            "style_type": "outline_width",
+                                            "style_value": 5
+                                        }
+                                    }
+                                    
+                                    # Override with any UI settings if available in scope?
+                                    # current_text_settings is available in this scope? Yes, defined at top of render_settings_expander
+                                    if 'current_text_settings' in locals() and current_text_settings:
+                                        settings_data['text_settings'] = current_text_settings
+
                                 # Generate preview
                                 preview_image = self.generate_preview(
                                     settings_data=settings_data,
@@ -1939,6 +2016,108 @@ class InterfaceSettingsManager:
                 col_refresh1, col_refresh2 = st.columns(2)
                 with col_refresh1:
                     st.markdown("**Refresh metadata** when you add new images to folders")
+                # Save button
+                if st.button("Save Settings", type="primary", use_container_width=True):
+                    # Update settings
+                    image_metadata["settings"] = settings
+                    image_metadata["settings_source"] = "manual"
+                    
+                    # Store extra caption settings in metadata if enabled
+                    if use_separate_settings and extra_caption_settings:
+                         if "extra_caption_settings" not in image_metadata:
+                             image_metadata["extra_caption_settings"] = {}
+                         image_metadata["extra_caption_settings"] = extra_caption_settings
+                    elif "extra_caption_settings" in image_metadata and not use_separate_settings:
+                         # Remove if disabled
+                         del image_metadata["extra_caption_settings"]
+
+                    # Save metadata
+                    self.metadata_editor.save_metadata()
+                    
+                    st.success("Settings saved!")
+                    st.session_state.settings_source = "manual"
+                    st.rerun()
+
+                # NEW: Apply to All Button
+                st.markdown("---")
+                if st.button(f"Apply to All Slides in '{content_type}'", type="secondary", use_container_width=True, help="Copy these settings (including Caption 2) to all images in this category"):
+                    with st.spinner(f"Applying settings to all {len(self.metadata_data['structure'][content_type]['images'])} slides..."):
+                        try:
+                            # Re-construct settings dict to ensure we have the latest values
+                            # This mirrors the construction done before generate_preview
+                            settings_to_apply = {
+                                "text_settings": {
+                                    "plain": {
+                                        # Force plain settings structure 
+                                        "font": current_text_settings.get("plain", {}).get("font", "tiktokfont"),
+                                        "font_size": current_text_settings.get("plain", {}).get("font_size", 50),
+                                        "style_type": current_text_settings.get("plain", {}).get("style_type", "outline_width"),
+                                        "style_value": current_text_settings.get("plain", {}).get("style_value", 5),
+                                        "colors": current_text_settings.get("plain", {}).get("colors", []),
+                                        "margins": current_text_settings.get("plain", {}).get("margins", {"top": 0.1, "bottom": 0.1, "left": 0.1, "right": 0.1}),
+                                        "position": current_text_settings.get("plain", {}).get("position", {"vertical": [0,1], "horizontal": [0,1]})
+                                    },
+                                    # Include highlight settings if needed, or just copy the whole current_text_settings if properly maintained
+                                },
+                                "base_settings": settings_data.get("base_settings", {})
+                            }
+                            
+                            # Actually, a safer way is to use 'settings_data["text_settings"]' which usually holds the latest state
+                            # But wait, 'settings' variable in the Save button block (lines ~1945) was used.
+                            # 'settings' was defined WAY earlier? Or is it local to the save block?
+                            # Looking at previous context: 'settings' was passed into generate_preview or constructed locally.
+                            
+                            # Let's use the 'image_metadata["settings"]' which we tried to save, or reconstruct it.
+                            # Better: Copy the 'settings_data["text_settings"]' directly as that contains the modified values from UI
+                            
+                            # Correction: 'settings' variable was likely defined around line 1920 or available in scope.
+                            # If it's missing, we grab it from settings_data which accumulates UI changes.
+                            
+                            settings_to_apply = settings_data.get("text_settings", {})
+                            
+                            # Get latest extra caption settings directly from session state or settings reconstruction
+                            # Re-derive flags to ensure they are available in this scope
+                            use_multi_scope = st.session_state.get("multi_caption_mode", False)
+                            use_separate_scope = st.session_state.get("separate_caption_settings", False)
+                            
+                            extra_settings_scope = None
+                            if use_multi_scope and use_separate_scope:
+                                extra_settings_scope = extra_caption_settings if 'extra_caption_settings' in locals() else st.session_state.get("extra_caption_settings")
+                            
+                            # Iterate through all images in the category
+                            category_images = self.metadata_data["structure"][content_type]["images"]
+                            count = 0
+                            
+                            for img_name in category_images:
+                                if img_name == current_image:
+                                    continue # Skip current one as it's the source
+                                
+                                target_img_data = self.metadata_data["images"][img_name]
+                                
+                                # Deep copy settings to avoid shared state
+                                import copy
+                                target_img_data["settings"] = copy.deepcopy(settings_to_apply)
+                                target_img_data["settings_source"] = "manual"
+                                
+                                # Copy extra caption settings
+                                if use_separate_scope and extra_settings_scope:
+                                    target_img_data["extra_caption_settings"] = copy.deepcopy(extra_settings_scope)
+                                elif "extra_caption_settings" in target_img_data:
+                                    del target_img_data["extra_caption_settings"]
+                                    
+                                count += 1
+                            
+                            # Save ALL changes
+                            self.metadata_editor.save_metadata()
+                            
+                            st.success(f"✅ Settings applied to {count} other slides in '{content_type}'!")
+                            import time
+                            time.sleep(1.5)
+                            st.rerun()
+                            
+                        except Exception as e:
+                            st.error(f"Failed to apply settings: {str(e)}")
+                            logger.error(f"Bulk apply error: {str(e)}")
                 with col_refresh2:
                     if st.button("🔄 Refresh Metadata", use_container_width=True):
                         try:

@@ -61,11 +61,21 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     
     # Calculate position with jitter
     position = text_settings["position"]
-    v_pos = random.uniform(position["vertical"][0], position["vertical"][1])
+    
+    # helper for safe range extraction
+    def get_pos_value(pos_data):
+        if isinstance(pos_data, (list, tuple)) and len(pos_data) >= 2:
+            return random.uniform(pos_data[0], pos_data[1])
+        elif isinstance(pos_data, (list, tuple)) and len(pos_data) == 1:
+            return float(pos_data[0])
+        else:
+            return float(pos_data)
+
+    v_pos = get_pos_value(position["vertical"])
     v_jitter = random.uniform(-position["vertical_jitter"], position["vertical_jitter"])
     height_center_position = v_pos + v_jitter
     
-    h_pos = random.uniform(position["horizontal"][0], position["horizontal"][1])
+    h_pos = get_pos_value(position["horizontal"])
     h_jitter = random.uniform(-position["horizontal_jitter"], position["horizontal_jitter"])
     width_center_position = h_pos + h_jitter
     

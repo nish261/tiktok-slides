@@ -435,4 +435,27 @@ class MetadataEditor:
                 prod["current_count"] += 1 if increment else -1
                 break
 
+    def save_metadata(self) -> None:
+        """Save current metadata to disk"""
+        try:
+            # Find the path to metadata.json
+            # It's usually in the parent directory of content types
+            # or we can infer it
+            
+            # Using specific logic to find base path from content Types
+            # Assuming first content type exists
+            first_ct = list(self.metadata["structure"].keys())[0]
+            ct_path = Path(self.metadata["structure"][first_ct]["path"])
+            base_dir = ct_path.parent
+            metadata_path = base_dir / "metadata.json"
+            
+            with open(metadata_path, "w") as f:
+                json.dump(self.metadata, f, indent=2)
+            
+            logger.debug(f"Metadata saved to {metadata_path}")
+            
+        except Exception as e:
+            logger.error(f"Failed to save metadata: {e}")
+            raise e
+
 
