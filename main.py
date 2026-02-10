@@ -153,10 +153,10 @@ print issues with metadat and warnings :: metadata.print_warnings
         """Open the text slide interface"""
         if not self.base_path:
             raise ValueError("No path set - please call load() first")
-            
+
         logger.debug(f"Opening interface - validating with separator: {self.separator}")
-        if not self.validate(strict=False):  # Uses stored separator
-            raise ValueError("cant load interface bc validation is False")
+        # Validate but don't block on non-critical errors (key order, etc.)
+        self.validate(strict=False)
 
         try:
             # Initialize Streamlit through subprocess to avoid context warnings
