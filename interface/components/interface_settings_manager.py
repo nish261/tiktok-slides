@@ -2390,25 +2390,122 @@ class InterfaceSettingsManager:
                             logger.error(f"Image swap failed: {str(e)}")
                             st.error(f"❌ Swap failed: {str(e)}")
 
-                # Show captions if available
-                if captions:
+                # Caption Editor Section
+                st.divider()
+                st.subheader("✏️ Caption Editor")
+
+                # Load all captions from CSV for editing
+                captions_path = self.base_path / "captions.csv"
+                all_captions = []
+                if captions_path.exists():
+                    import csv
+                    with open(captions_path, 'r') as f:
+                        reader = csv.DictReader(f)
+                        all_captions = list(reader)
+
+                if all_captions:
+                    # Initialize edit state
+                    if "editing_caption_idx" not in st.session_state:
+                        st.session_state.editing_caption_idx = None
+
+                    # Caption selector
                     st.selectbox(
-                        "Select Caption",
-                        range(len(captions)),
-                        index=st.session_state.selected_caption_idx,
-                        format_func=lambda x: f"[{x}] {captions[x][:90]}",
+                        "Select Caption to Preview",
+                        range(len(captions)) if captions else [0],
+                        index=st.session_state.selected_caption_idx if captions else 0,
+                        format_func=lambda x: f"[{x}] {captions[x][:60]}..." if captions and x < len(captions) else "No captions",
                         key="selected_caption_idx"
                     )
-                    
-                    st.divider()
-                    st.write("Available Captions:")
-                    for idx, caption in enumerate(captions):
-                        st.text(f"[{idx}] {caption}")
+
+                    st.markdown("---")
+                    st.markdown("**All Captions** (click to edit)")
+
+                    # Display captions with edit/delete buttons
+                    for idx, row in enumerate(all_captions):
+                        caption_text = row.get("caption", "")
+                        col1, col2, col3 = st.columns([6, 1, 1])
+
+                        with col1:
+                            if st.session_state.editing_caption_idx == idx:
+                                # Edit mode
+                                new_text = st.text_area(
+                                    f"Caption {idx}",
+                                    value=caption_text,
+                                    key=f"edit_caption_{idx}",
+                                    label_visibility="collapsed"
+                                )
+                                # Save button
+                                if st.button("💾 Save", key=f"save_caption_{idx}"):
+                                    all_captions[idx]["caption"] = new_text
+                                    # Write back to CSV
+                                    with open(captions_path, 'w', newline='') as f:
+                                        writer = csv.DictWriter(f, fieldnames=all_captions[0].keys())
+                                        writer.writeheader()
+                                        writer.writerows(all_captions)
+                                    st.session_state.editing_caption_idx = None
+                                    st.success(f"Caption {idx} saved!")
+                                    st.rerun()
+                            else:
+                                st.text(f"[{idx}] {caption_text[:80]}{'...' if len(caption_text) > 80 else ''}")
+
+                        with col2:
+                            if st.button("✏️", key=f"edit_btn_{idx}", help="Edit"):
+                                st.session_state.editing_caption_idx = idx
+                                st.rerun()
+
+                        with col3:
+                            if st.button("🗑️", key=f"del_btn_{idx}", help="Delete"):
+                                all_captions.pop(idx)
+                                with open(captions_path, 'w', newline='') as f:
+                                    if all_captions:
+                                        writer = csv.DictWriter(f, fieldnames=all_captions[0].keys())
+                                        writer.writeheader()
+                                        writer.writerows(all_captions)
+                                    else:
+                                        f.write("content_type,product,caption\n")
+                                st.success(f"Caption {idx} deleted!")
+                                st.rerun()
+
+                    # Add new caption
+                    st.markdown("---")
+                    st.markdown("**Add New Caption**")
+                    new_caption = st.text_area("New caption text", key="new_caption_text", height=80)
+                    col_add1, col_add2 = st.columns([1, 1])
+                    with col_add1:
+                        add_content_type = st.selectbox("Content Type", list(self.content_types), key="add_caption_ct")
+                    with col_add2:
+                        add_product = st.text_input("Product (or 'all')", value="all", key="add_caption_product")
+
+                    if st.button("➕ Add Caption", type="primary", use_container_width=True):
+                        if new_caption.strip():
+                            import csv
+                            new_row = {
+                                "content_type": add_content_type,
+                                "product": add_product,
+                                "caption": new_caption.strip()
+                            }
+                            all_captions.append(new_row)
+                            with open(captions_path, 'w', newline='') as f:
+                                writer = csv.DictWriter(f, fieldnames=["content_type", "product", "caption"])
+                                writer.writeheader()
+                                writer.writerows(all_captions)
+                            st.success("Caption added!")
+                            st.rerun()
+                        else:
+                            st.warning("Enter caption text first")
+
                 else:
-                    if product:
-                        st.info(f"No captions available for {content_type} with product {product}")
-                    else:
-                        st.info(f"No captions available for {content_type}")
+                    st.info("No captions.csv found. Add captions below:")
+                    new_caption = st.text_area("Caption text", key="first_caption_text")
+                    if st.button("Create captions.csv"):
+                        import csv
+                        with open(captions_path, 'w', newline='') as f:
+                            writer = csv.DictWriter(f, fieldnames=["content_type", "product", "caption"])
+                            writer.writeheader()
+                            if new_caption.strip():
+                                writer.writerow({"content_type": "slide1", "product": "all", "caption": new_caption.strip()})
+                        st.success("Created captions.csv!")
+                        st.rerun()
                 
             except Exception as e:
                 logger.error(f"Error in preview expander: {str(e)}")
