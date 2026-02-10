@@ -67,15 +67,21 @@ def draw_plain_image(
     # Wrap text
     lines = wrap_text(draw, text, font, scaled_max_width)
     line_spacing = int(scaled_font_size * 1.2)
-    total_height = len(lines) * line_spacing
+    total_text_height = len(lines) * line_spacing
 
-    # Calculate position
+    # Calculate position - center the text block at the specified position
     x = int(scaled_width * width_center_position)
-    y = int(scaled_height * height_center_position)
+    y_center = int(scaled_height * height_center_position)
+
+    # Offset y so text block is centered at the position
+    y_start = y_center - (total_text_height // 2)
+
+    print(f"PLAIN // Text block: {len(lines)} lines, total height={total_text_height}")
+    print(f"PLAIN // Center at y={y_center}, starting at y={y_start}")
 
     # Draw each line with emoji support
     for i, line in enumerate(lines):
-        line_y = y + (i * line_spacing)
+        line_y = y_start + (i * line_spacing)
 
         text_layer = draw_text_with_emoji(
             text_layer,
