@@ -104,6 +104,162 @@ class InterfaceSettingsManager:
 
         return temp_path
 
+    def add_new_slide(self, slide_name: str) -> tuple:
+        """Create a new slide with folder, CSV columns, and metadata entries.
+
+        Args:
+            slide_name: Name for the new slide (e.g., "slide3")
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        import csv
+        import os
+
+        # Validate slide name
+        slide_name = slide_name.strip().lower().replace(" ", "_")
+        if not slide_name:
+            return False, "Slide name cannot be empty"
+
+        if slide_name in self.content_types:
+            return False, f"Slide '{slide_name}' already exists"
+
+        if not slide_name.replace("_", "").isalnum():
+            return False, "Slide name must be alphanumeric (underscores allowed)"
+
+        try:
+            # 1. Create the folder
+            slide_folder = self.base_path / slide_name
+            slide_folder.mkdir(exist_ok=True)
+
+            # 2. Update metadata.json
+            # Add to content_types
+            self.metadata_data["content_types"].append(slide_name)
+
+            # Add to products
+            self.metadata_data["products"][slide_name] = [{
+                "name": "all",
+                "prevent_duplicates": False,
+                "current_count": 0,
+                "min_occurrences": 1
+            }]
+
+            # Add to structure
+            self.metadata_data["structure"][slide_name] = {
+                "path": f"{self.base_path.name}/{slide_name}",
+                "images": []
+            }
+
+            # Save metadata
+            self.metadata.save()
+
+            # 3. Update CSV with new columns
+            csv_path = self.base_path / "captions.csv"
+            if csv_path.exists():
+                # Read existing CSV
+                with open(csv_path, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    rows = list(reader)
+
+                if rows:
+                    # Add new columns to header
+                    header = rows[0]
+                    header.extend([f"product_{slide_name}", slide_name])
+
+                    # Add empty values to existing rows
+                    for row in rows[1:]:
+                        row.extend(["all", ""])  # Default product and empty caption
+
+                    # Write back
+                    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerows(rows)
+
+            # Update internal state
+            self.content_types.add(slide_name)
+            self.products[slide_name] = self.metadata_data["products"][slide_name]
+
+            return True, f"Created slide '{slide_name}' successfully!"
+
+        except Exception as e:
+            return False, f"Error creating slide: {str(e)}"
+
+    def delete_slide(self, slide_name: str) -> tuple:
+        """Delete a slide and its associated data.
+
+        Args:
+            slide_name: Name of the slide to delete
+
+        Returns:
+            tuple: (success: bool, message: str)
+        """
+        import csv
+        import shutil
+
+        if slide_name not in self.content_types:
+            return False, f"Slide '{slide_name}' does not exist"
+
+        if len(self.content_types) <= 1:
+            return False, "Cannot delete the last slide"
+
+        try:
+            # 1. Remove folder (move to past_images for safety)
+            slide_folder = self.base_path / slide_name
+            if slide_folder.exists():
+                backup_folder = self.base_path / "past_images" / f"{slide_name}_deleted"
+                backup_folder.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(slide_folder), str(backup_folder))
+
+            # 2. Update metadata
+            self.metadata_data["content_types"].remove(slide_name)
+            del self.metadata_data["products"][slide_name]
+            del self.metadata_data["structure"][slide_name]
+
+            # Remove images associated with this slide
+            images_to_remove = [
+                img for img, data in self.metadata_data["images"].items()
+                if data.get("content_type") == slide_name
+            ]
+            for img in images_to_remove:
+                del self.metadata_data["images"][img]
+
+            self.metadata.save()
+
+            # 3. Update CSV - remove columns
+            csv_path = self.base_path / "captions.csv"
+            if csv_path.exists():
+                with open(csv_path, 'r', newline='', encoding='utf-8') as f:
+                    reader = csv.reader(f)
+                    rows = list(reader)
+
+                if rows:
+                    header = rows[0]
+                    # Find column indices to remove
+                    cols_to_remove = []
+                    for i, col in enumerate(header):
+                        if col == slide_name or col == f"product_{slide_name}":
+                            cols_to_remove.append(i)
+
+                    # Remove columns (in reverse order to preserve indices)
+                    for row in rows:
+                        for i in sorted(cols_to_remove, reverse=True):
+                            if i < len(row):
+                                del row[i]
+
+                    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                        writer = csv.writer(f)
+                        writer.writerows(rows)
+
+            # Update internal state
+            self.content_types.discard(slide_name)
+            if slide_name in self.products:
+                del self.products[slide_name]
+
+            return True, f"Deleted slide '{slide_name}' (backed up to past_images)"
+
+        except Exception as e:
+            return False, f"Error deleting slide: {str(e)}"
+
     def initialize_session_state(self):
         """Initialize or reset the session state with required defaults"""
         # Find first non-empty content type and its first image
@@ -582,6 +738,51 @@ class InterfaceSettingsManager:
                     with col2:
                         if st.button("🔄 Apply to All", type="primary", key="apply_to_all_btn"):
                             self.apply_settings_to_all_in_folder()
+
+                    # Slide Management Section
+                    st.markdown("---")
+                    with st.expander("📁 Slide Management", expanded=False):
+                        st.markdown("**Current Slides:**")
+                        for slide in sorted(self.content_types):
+                            st.write(f"• {slide}")
+
+                        st.markdown("---")
+                        st.markdown("**➕ Add New Slide**")
+                        new_slide_name = st.text_input(
+                            "Slide Name",
+                            placeholder="e.g., slide3",
+                            key="new_slide_name_input"
+                        )
+                        if st.button("Create Slide", type="primary", key="create_slide_btn"):
+                            if new_slide_name:
+                                success, message = self.add_new_slide(new_slide_name)
+                                if success:
+                                    st.success(message)
+                                    st.info("Refresh the page to see the new slide")
+                                    st.rerun()
+                                else:
+                                    st.error(message)
+                            else:
+                                st.warning("Please enter a slide name")
+
+                        st.markdown("---")
+                        st.markdown("**🗑️ Delete Slide**")
+                        if len(self.content_types) > 1:
+                            slide_to_delete = st.selectbox(
+                                "Select slide to delete",
+                                options=sorted(self.content_types),
+                                key="delete_slide_select"
+                            )
+                            st.warning(f"⚠️ This will move '{slide_to_delete}' folder to past_images")
+                            if st.button("Delete Slide", type="secondary", key="delete_slide_btn"):
+                                success, message = self.delete_slide(slide_to_delete)
+                                if success:
+                                    st.success(message)
+                                    st.rerun()
+                                else:
+                                    st.error(message)
+                        else:
+                            st.info("Cannot delete - need at least one slide")
 
                     # Debug view of settings
                     with st.expander("Debug Settings View"):
