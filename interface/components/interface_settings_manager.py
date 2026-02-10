@@ -1,9 +1,12 @@
 from pathlib import Path
 import json
 import streamlit as st  # type: ignore
+from PIL import Image
 from content_manager.settings.settings_constants import (
     DEFAULT_TEMPLATE,
     VALID_TEXT_TYPES,
+    TIKTOK_WIDTH,
+    TIKTOK_HEIGHT,
 )
 from typing import List, Dict, Any, Set
 from content_manager.metadata.metadata_editor import MetadataEditor
@@ -48,6 +51,58 @@ class InterfaceSettingsManager:
             for font_name in self.settings_handler.list_fonts()
         }
         self.initialize_session_state()
+
+    def add_tiktok_frame(self, img: Image.Image) -> Image.Image:
+        """Add TikTok 9:16 frame around image with black bars.
+
+        Centers the image on a 1080x1920 canvas, scaling if needed
+        to fit while maintaining aspect ratio.
+        """
+        # Create black canvas at TikTok dimensions
+        canvas = Image.new("RGBA", (TIKTOK_WIDTH, TIKTOK_HEIGHT), (0, 0, 0, 255))
+
+        # Scale image to fit within canvas while maintaining aspect ratio
+        img_w, img_h = img.size
+        scale = min(TIKTOK_WIDTH / img_w, TIKTOK_HEIGHT / img_h)
+
+        new_w = int(img_w * scale)
+        new_h = int(img_h * scale)
+
+        # Resize image
+        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+
+        # Center on canvas
+        x = (TIKTOK_WIDTH - new_w) // 2
+        y = (TIKTOK_HEIGHT - new_h) // 2
+
+        # Paste (handle RGBA properly)
+        if resized.mode == "RGBA":
+            canvas.paste(resized, (x, y), resized)
+        else:
+            canvas.paste(resized, (x, y))
+
+        return canvas
+
+    def create_tiktok_base(self, image_path: str) -> str:
+        """Create a TikTok-framed base image for text rendering.
+
+        Opens the image, places it on 1080x1920 canvas, saves to temp file.
+        Text will then be rendered on this full-size canvas.
+        """
+        import tempfile
+
+        img = Image.open(image_path)
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+
+        # Create the framed version
+        framed = self.add_tiktok_frame(img)
+
+        # Save to temp file
+        temp_path = tempfile.mktemp(suffix=".png")
+        framed.save(temp_path)
+
+        return temp_path
 
     def initialize_session_state(self):
         """Initialize or reset the session state with required defaults"""
@@ -518,6 +573,16 @@ class InterfaceSettingsManager:
                     self.render_color_settings(text_type)
                     self.render_preview_expander(settings_data)
 
+                    # Apply to all images in folder button
+                    st.markdown("---")
+                    st.markdown("### 📋 Bulk Apply Settings")
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write("Apply these settings to all images in this folder")
+                    with col2:
+                        if st.button("🔄 Apply to All", type="primary", key="apply_to_all_btn"):
+                            self.apply_settings_to_all_in_folder()
+
                     # Debug view of settings
                     with st.expander("Debug Settings View"):
                         st.json(settings_data)
@@ -527,6 +592,61 @@ class InterfaceSettingsManager:
             except Exception as e:
                 logger.error(f"Error in render method: {str(e)}")
                 st.error("An error occurred while rendering settings")
+
+    def apply_settings_to_all_in_folder(self):
+        """Apply current image's settings to all images in the same folder"""
+        try:
+            current_image = st.session_state.get("selected_image")
+            if not current_image:
+                st.error("No image selected")
+                return
+
+            # Get current image data and settings
+            current_image_data = self.metadata_data["images"][current_image]
+            content_type = current_image_data["content_type"]
+            current_settings = current_image_data.get("settings")
+
+            if not current_settings:
+                st.error("Current image has no custom settings to apply")
+                return
+
+            # Get all images in the same folder
+            all_images_in_folder = self.metadata_data["structure"][content_type]["images"]
+
+            # Confirm with user
+            with st.spinner(f"Applying settings to {len(all_images_in_folder)} images in {content_type}/..."):
+                applied_count = 0
+
+                for image_name in all_images_in_folder:
+                    try:
+                        # Apply the current settings to this image
+                        self.metadata_editor.edit_image(
+                            image_name=image_name,
+                            data={
+                                "settings_source": "custom",
+                                "settings": current_settings.copy()
+                            }
+                        )
+
+                        # Update local metadata
+                        self.metadata_data["images"][image_name]["settings_source"] = "custom"
+                        self.metadata_data["images"][image_name]["settings"] = current_settings.copy()
+
+                        applied_count += 1
+
+                    except Exception as e:
+                        logger.error(f"Failed to apply settings to {image_name}: {str(e)}")
+                        continue
+
+                # Save metadata
+                self.metadata.save()
+
+                st.success(f"✅ Applied settings to {applied_count} images in {content_type}/ folder!")
+                st.balloons()
+
+        except Exception as e:
+            logger.error(f"Error applying settings to all: {str(e)}")
+            st.error(f"Failed to apply settings: {str(e)}")
 
     def get_current_settings(self):
         """Get settings and product info for current image based on settings level hierarchy"""
@@ -1910,9 +2030,17 @@ class InterfaceSettingsManager:
                     # Clear the apply flag but keep position for display
                     st.session_state.apply_clicked_position = False
                 
+                # TikTok frame toggle
+                show_tiktok_frame = st.checkbox(
+                    "Show TikTok Frame (9:16)",
+                    value=st.session_state.get("show_tiktok_frame", False),
+                    help="Preview how it looks on TikTok with black bars"
+                )
+                st.session_state.show_tiktok_frame = show_tiktok_frame
+
                 # Two columns for buttons
                 col1, col2 = st.columns(2)
-                
+
                 # Generate button
                 with col1:
                     generate_enabled = bool(captions)  # Only enable if we have captions
@@ -1969,15 +2097,31 @@ class InterfaceSettingsManager:
                                     if 'current_text_settings' in locals() and current_text_settings:
                                         settings_data['text_settings'] = current_text_settings
 
-                                # Generate preview
+                                # If TikTok frame mode: frame the image FIRST, then add text
+                                # This way text is positioned relative to full 1080x1920
+                                use_tiktok_frame = st.session_state.get("show_tiktok_frame", False)
+
+                                if use_tiktok_frame:
+                                    # Create framed base image first
+                                    framed_path = self.create_tiktok_base(str(image_path))
+                                    render_path = framed_path
+                                else:
+                                    render_path = str(image_path)
+
+                                # Generate preview (text rendered on framed or original)
                                 preview_image = self.generate_preview(
                                     settings_data=settings_data,
                                     text_type=text_type,
                                     colour_index=0,
-                                    image_path=str(image_path),
+                                    image_path=render_path,
                                     text=selected_caption
                                 )
-                                
+
+                                # Clean up temp file if we created one
+                                if use_tiktok_frame:
+                                    import os
+                                    os.unlink(framed_path)
+
                                 # Save preview image
                                 # Always save previews as PNG to avoid JPEG RGBA errors
                                 preview_dir = self.base_path / "preview"
