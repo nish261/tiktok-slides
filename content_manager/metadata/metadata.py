@@ -81,11 +81,13 @@ class Metadata:
                 self.warnings.extend(validator.warnings)
                 self.errors.extend(validator.errors)
 
+                # Always initialize editor so interface can still work
+                self.metadata_editor = MetadataEditor(self.data)
+
                 if not validation_result:
                     print("Validation failed")  # Debug print
                     return False
 
-                self.metadata_editor = MetadataEditor(self.data)
                 return True
 
             except Exception as e:
