@@ -2408,17 +2408,7 @@ class InterfaceSettingsManager:
                     if "editing_caption_idx" not in st.session_state:
                         st.session_state.editing_caption_idx = None
 
-                    # Caption selector
-                    st.selectbox(
-                        "Select Caption to Preview",
-                        range(len(captions)) if captions else [0],
-                        index=st.session_state.selected_caption_idx if captions else 0,
-                        format_func=lambda x: f"[{x}] {captions[x][:60]}..." if captions and x < len(captions) else "No captions",
-                        key="selected_caption_idx"
-                    )
-
-                    st.markdown("---")
-                    st.markdown("**All Captions** (click to edit)")
+                    st.caption(f"📝 {len(all_captions)} captions")
 
                     # Display captions with edit/delete buttons
                     for idx, row in enumerate(all_captions):
