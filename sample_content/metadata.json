@@ -1,7 +1,8 @@
 {
   "content_types": [
     "slide1",
-    "slide2"
+    "slide2",
+    "slide3"
   ],
   "products": {
     "slide1": [
@@ -13,6 +14,14 @@
       }
     ],
     "slide2": [
+      {
+        "name": "all",
+        "prevent_duplicates": false,
+        "current_count": 0,
+        "min_occurrences": 1
+      }
+    ],
+    "slide3": [
       {
         "name": "all",
         "prevent_duplicates": false,
@@ -48,6 +57,10 @@
         "a44f764e-eb72-4f75-a517-ad08dd1af354-1768196756.webp",
         "c2714830-2c59-46ad-99e6-ec0fc0223acc-1768198676.webp"
       ]
+    },
+    "slide3": {
+      "path": "sample_content/slide3",
+      "images": []
     }
   },
   "images": {

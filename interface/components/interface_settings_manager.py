@@ -176,7 +176,10 @@ class InterfaceSettingsManager:
                         writer.writerows(rows)
 
             # Update internal state
-            self.content_types.add(slide_name)
+            if isinstance(self.content_types, set):
+                self.content_types.add(slide_name)
+            else:
+                self.content_types.append(slide_name)
             self.products[slide_name] = self.metadata_data["products"][slide_name]
 
             return True, f"Created slide '{slide_name}' successfully!"
@@ -251,7 +254,10 @@ class InterfaceSettingsManager:
                         writer.writerows(rows)
 
             # Update internal state
-            self.content_types.discard(slide_name)
+            if isinstance(self.content_types, set):
+                self.content_types.discard(slide_name)
+            elif slide_name in self.content_types:
+                self.content_types.remove(slide_name)
             if slide_name in self.products:
                 del self.products[slide_name]
 
