@@ -163,14 +163,29 @@ if __name__ == "__main__":
 
     # print("Command line arguments:", sys.argv)
     base_path = Path(sys.argv[1])
-    try:
-        content_types = ast.literal_eval(sys.argv[2])
-        products = ast.literal_eval(sys.argv[3])
-        separator = sys.argv[4]  # Get the separator argument
-        
-    except Exception as e:
-        print(f"Error parsing arguments: {e}")
-        raise
+
+    # Try to load content_types and products from metadata.json for auto-refresh
+    metadata_path = base_path / "metadata.json"
+    if metadata_path.exists():
+        import json
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        content_types = set(metadata.get("content_types", []))
+        # Build products dict from metadata
+        products = {}
+        for ct in content_types:
+            products[ct] = [p["name"] for p in metadata.get("products", {}).get(ct, [{"name": "all"}])]
+        separator = sys.argv[4] if len(sys.argv) > 4 else ","
+    else:
+        # Fallback to command line args
+        try:
+            content_types = ast.literal_eval(sys.argv[2])
+            products = ast.literal_eval(sys.argv[3])
+            separator = sys.argv[4]  # Get the separator argument
+        except Exception as e:
+            print(f"Error parsing arguments: {e}")
+            raise
+
     interface = Interface(
         base_path, content_types, products, separator
     )  # Pass separator to Interface
