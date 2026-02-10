@@ -153,6 +153,43 @@ class InterfaceSettingsManager:
                 "images": []
             }
 
+            # 2b. Copy a random image from another folder so it's not empty
+            import shutil
+            import random
+            import hashlib
+            from PIL import Image as PILImage
+
+            # Find a folder with images
+            for other_slide in self.metadata_data["structure"]:
+                if other_slide != slide_name:
+                    other_images = self.metadata_data["structure"][other_slide]["images"]
+                    if other_images:
+                        # Pick a random image
+                        random_img = random.choice(other_images)
+                        src_path = self.base_path / other_slide / random_img
+
+                        if src_path.exists():
+                            # Generate unique name for the copy
+                            ext = src_path.suffix
+                            unique_hash = hashlib.md5(f"{slide_name}_{random_img}".encode()).hexdigest()[:12]
+                            new_img_name = f"{unique_hash}{ext}"
+                            dst_path = slide_folder / new_img_name
+
+                            shutil.copy(str(src_path), str(dst_path))
+
+                            # Add to structure
+                            self.metadata_data["structure"][slide_name]["images"].append(new_img_name)
+
+                            # Add to images metadata
+                            img = PILImage.open(dst_path)
+                            self.metadata_data["images"][new_img_name] = {
+                                "content_type": slide_name,
+                                "dimensions": {"width": img.size[0], "height": img.size[1]},
+                                "product": "all",
+                                "settings_source": "default"
+                            }
+                            break
+
             # Save metadata
             self.metadata.save()
 

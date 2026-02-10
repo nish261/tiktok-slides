@@ -35,13 +35,36 @@ class TopBarManager:
 
     def render(self):
         """Render the top bar"""
+        # Top row with reset and folder buttons
+        btn_col1, btn_col2, spacer = st.columns([0.15, 0.15, 0.7])
+        with btn_col1:
+            if st.button("🔄", help="Reset & Refresh App", key="reset_app_btn"):
+                import subprocess
+                import sys
+                # Clear session state
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                st.rerun()
+        with btn_col2:
+            if st.button("📁", help="Open Folder", key="open_folder_btn"):
+                import subprocess
+                import platform
+                folder_path = str(self.base_path.resolve())
+                if platform.system() == "Darwin":  # macOS
+                    subprocess.run(["open", folder_path])
+                elif platform.system() == "Windows":
+                    subprocess.run(["explorer", folder_path])
+                else:  # Linux
+                    subprocess.run(["xdg-open", folder_path])
+                st.toast(f"Opened {folder_path}")
+
         col1, col2, col3, col4, col5 = st.columns([2.35, 1, 1, 1.175, 1.175])
-        
+
         with col1:
             # Message display with type
             message = st.session_state.get('top_bar_message', '')
             message_type = st.session_state.get('top_bar_message_type', 'warning')
-            
+
             if message:
                 if message_type == 'success':
                     st.success(message, icon=None)

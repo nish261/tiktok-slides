@@ -60,7 +60,9 @@
     },
     "slide3": {
       "path": "sample_content/slide3",
-      "images": []
+      "images": [
+        "starter_067dd84b3a06921ff687d523b8dff567.webp"
+      ]
     }
   },
   "images": {
@@ -1191,6 +1193,15 @@
       },
       "set_id": null,
       "set_index": null
+    },
+    "starter_067dd84b3a06921ff687d523b8dff567.webp": {
+      "content_type": "slide3",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
+      },
+      "product": "all",
+      "settings_source": "default"
     }
   },
   "sets": {
