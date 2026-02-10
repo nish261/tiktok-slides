@@ -65,7 +65,7 @@
         },
         "text_settings": {
           "plain": {
-            "font_size": 75.0,
+            "font_size": 74.0,
             "font": "assets.fonts.tiktokfont.ttf",
             "style_type": "outline_width",
             "style_value": 5.0,
@@ -77,12 +77,12 @@
             ],
             "position": {
               "vertical": [
-                0.6023,
-                0.6023
+                0.3771,
+                0.3771
               ],
               "horizontal": [
-                0.1567,
-                0.1567
+                0.135,
+                0.135
               ],
               "vertical_jitter": 0.01,
               "horizontal_jitter": 0.02
