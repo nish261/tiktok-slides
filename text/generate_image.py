@@ -1,13 +1,20 @@
 from PIL import Image
 from typing import Dict, Any
-from content_manager.settings.settings_constants import VALID_TEXT_TYPES, BASE_DIR
+from content_manager.settings.settings_constants import VALID_TEXT_TYPES, BASE_DIR, REFERENCE_WIDTH, REFERENCE_HEIGHT
 from text.highlight_text import draw_highlight_image
 from text.plain_text import draw_plain_image  # We'll create this later
 import random
 from config.logging import logger
 
-# use this function to calcualate things like max width,
-# etc
+
+def scale_for_image(value: int, image_height: int) -> int:
+    """Scale a value (like font size) from TikTok reference to actual image size.
+
+    Settings are defined for 1080x1920 (TikTok standard).
+    This scales them proportionally for any image size.
+    """
+    scale_factor = image_height / REFERENCE_HEIGHT
+    return int(value * scale_factor)
 
 
 # Map text types to their rendering functions
@@ -102,12 +109,17 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
     # Resolve absolute font path inside the package (avoids CWD issues)
     resolved_font_path = str((BASE_DIR / text_settings["font"].replace("assets.fonts.", "assets/fonts/")).resolve())
 
+    # Scale font size relative to TikTok reference (1080x1920)
+    # So a font_size of 70 on 1920px height stays proportional on any image
+    scaled_font_size = scale_for_image(text_settings["font_size"], height)
+    logger.debug(f"Font scaling: {text_settings['font_size']} @ 1920px -> {scaled_font_size} @ {height}px")
+
     common_settings = {
         "image": image,
-        "width": width, 
+        "width": width,
         "height": height,
         "text": text,
-        "font_size": text_settings["font_size"],
+        "font_size": scaled_font_size,
         "font_path": resolved_font_path,
         "max_width": max_width,
         "width_center_position": width_center_position,
@@ -126,17 +138,19 @@ def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, 
             raise KeyError(f"Missing required color key '{key}' for text type '{text_type}'")
         style_settings[param_mapping[key]] = colors[key]
     
-    # Add style-specific settings
+    # Add style-specific settings (also scaled to image size)
+    scaled_style_value = scale_for_image(text_settings["style_value"], height)
+
     if text_type == "plain":
-        style_settings["outline_width"] = text_settings["style_value"]
+        style_settings["outline_width"] = scaled_style_value
         logger.trace("GENERATE // Drawing plain text")
         logger.trace(f"GENERATE // Font: {text_settings['font']}")
-        logger.trace(f"GENERATE // Font size: {text_settings['font_size']}")
+        logger.trace(f"GENERATE // Font size: {text_settings['font_size']} -> scaled: {scaled_font_size}")
         logger.trace(f"GENERATE // Style type: {text_settings['style_type']}")
-        logger.trace(f"GENERATE // Style value: {text_settings['style_value']}")
+        logger.trace(f"GENERATE // Style value: {text_settings['style_value']} -> scaled: {scaled_style_value}")
         logger.trace(f"GENERATE // Colors: {colors}")
     elif text_type == "highlight":
-        style_settings["corner_radius"] = text_settings["style_value"]
+        style_settings["corner_radius"] = scaled_style_value
         logger.trace("GENERATE // Drawing highlight text")
         
     logger.debug(f"Using image {image_path} with text type {text_type}")

@@ -1,5 +1,16 @@
 from pathlib import Path
 
+# TikTok Standard Dimensions (9:16 aspect ratio)
+# All text positioning should be calculated relative to this benchmark
+TIKTOK_WIDTH = 1080
+TIKTOK_HEIGHT = 1920
+TIKTOK_ASPECT_RATIO = 9 / 16  # 0.5625
+
+# Use this as the reference for consistent text sizing across all images
+# Font sizes, margins, positions are all relative to this standard
+REFERENCE_WIDTH = TIKTOK_WIDTH
+REFERENCE_HEIGHT = TIKTOK_HEIGHT
+
 VALID_TEXT_TYPES = {
     "plain": {
         "style_type": "outline_width",
