@@ -79,6 +79,10 @@ def draw_plain_image(
     print(f"PLAIN // Text block: {len(lines)} lines, total height={total_text_height}")
     print(f"PLAIN // Center at y={y_center}, starting at y={y_start}")
 
+    # Scale margins for text layer
+    scaled_margin_left = margins.get("left", 0) * scale
+    scaled_margin_right = margins.get("right", 0) * scale
+
     # Draw each line with emoji support
     for i, line in enumerate(lines):
         line_y = y_start + (i * line_spacing)
@@ -91,6 +95,8 @@ def draw_plain_image(
             fill=text_color,
             outline_color=outline_color,
             outline_width=scaled_outline_width,
+            margin_left=int(scaled_margin_left),
+            margin_right=int(scaled_margin_right),
         )
         print(f"PLAIN // Rendered line {i}: {line[:40]}...")
 

@@ -190,6 +190,8 @@ def draw_text_with_emoji(
     fill: str = "#FFFFFF",
     outline_color: str = "#000000",
     outline_width: int = 0,
+    margin_left: int = 0,
+    margin_right: int = 0,
 ) -> Image.Image:
     """
     Draw text with Apple emoji support.
@@ -205,11 +207,14 @@ def draw_text_with_emoji(
         fill: Text color
         outline_color: Outline color
         outline_width: Outline thickness (0 for no outline)
+        margin_left: Left margin to prevent overflow
+        margin_right: Right margin to prevent overflow
 
     Returns:
         Image with text drawn
     """
     draw = ImageDraw.Draw(image)
+    img_width = image.size[0]
 
     # Split text into segments
     segments = split_text_and_emojis(text)
@@ -231,9 +236,14 @@ def draw_text_with_emoji(
             segment_widths.append(width)
             total_width += width
 
-    # Start position (centered)
+    # Start position (centered) - but clamp to stay within margins
     x = int(position[0] - total_width / 2)
     y = int(position[1])
+
+    # Clamp x so text doesn't overflow left or right margins
+    min_x = margin_left
+    max_x = img_width - margin_right - total_width
+    x = max(min_x, min(x, max_x))
 
     # Draw each segment
     for i, (segment, is_emoji) in enumerate(segments):
@@ -284,6 +294,8 @@ def draw_multiline_text_with_emoji(
     fill: str = "#FFFFFF",
     outline_color: str = "#000000",
     outline_width: int = 0,
+    margin_left: int = 0,
+    margin_right: int = 0,
 ) -> Image.Image:
     """
     Draw multiple lines of text with Apple emoji support.
@@ -297,6 +309,8 @@ def draw_multiline_text_with_emoji(
         fill: Text color
         outline_color: Outline color
         outline_width: Outline thickness
+        margin_left: Left margin to prevent overflow
+        margin_right: Right margin to prevent overflow
 
     Returns:
         Image with text drawn
@@ -305,7 +319,8 @@ def draw_multiline_text_with_emoji(
 
     for line in lines:
         image = draw_text_with_emoji(
-            image, line, (x, y), font, fill, outline_color, outline_width
+            image, line, (x, y), font, fill, outline_color, outline_width,
+            margin_left, margin_right
         )
         y += line_spacing
 
