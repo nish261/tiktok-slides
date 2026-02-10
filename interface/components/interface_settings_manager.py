@@ -121,7 +121,9 @@ class InterfaceSettingsManager:
         if not slide_name:
             return False, "Slide name cannot be empty"
 
-        if slide_name in self.content_types:
+        # Check both internal state and metadata for existing slide
+        existing_slides = set(self.content_types) | set(self.metadata_data.get("content_types", []))
+        if slide_name in existing_slides:
             return False, f"Slide '{slide_name}' already exists"
 
         if not slide_name.replace("_", "").isalnum():
@@ -133,8 +135,9 @@ class InterfaceSettingsManager:
             slide_folder.mkdir(exist_ok=True)
 
             # 2. Update metadata.json
-            # Add to content_types
-            self.metadata_data["content_types"].append(slide_name)
+            # Add to content_types (avoid duplicates)
+            if slide_name not in self.metadata_data["content_types"]:
+                self.metadata_data["content_types"].append(slide_name)
 
             # Add to products
             self.metadata_data["products"][slide_name] = [{
@@ -175,10 +178,10 @@ class InterfaceSettingsManager:
                         writer = csv.writer(f)
                         writer.writerows(rows)
 
-            # Update internal state
+            # Update internal state (avoid duplicates)
             if isinstance(self.content_types, set):
                 self.content_types.add(slide_name)
-            else:
+            elif slide_name not in self.content_types:
                 self.content_types.append(slide_name)
             self.products[slide_name] = self.metadata_data["products"][slide_name]
 
