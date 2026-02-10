@@ -2408,11 +2408,22 @@ class InterfaceSettingsManager:
                     if "editing_caption_idx" not in st.session_state:
                         st.session_state.editing_caption_idx = None
 
-                    st.caption(f"📝 {len(all_captions)} captions")
+                    # Detect caption column (could be 'caption' or content type name like 'slide1')
+                    first_row = all_captions[0]
+                    caption_col = None
+                    for col in first_row.keys():
+                        if col == "caption" or col in self.content_types:
+                            if first_row.get(col):  # Has actual caption text
+                                caption_col = col
+                                break
+                    if not caption_col:
+                        caption_col = list(first_row.keys())[1] if len(first_row.keys()) > 1 else list(first_row.keys())[0]
+
+                    st.caption(f"📝 {len(all_captions)} captions (column: {caption_col})")
 
                     # Display captions with edit/delete buttons
                     for idx, row in enumerate(all_captions):
-                        caption_text = row.get("caption", "")
+                        caption_text = row.get(caption_col, "") or row.get("caption", "")
                         col1, col2, col3 = st.columns([6, 1, 1])
 
                         with col1:
@@ -2426,7 +2437,7 @@ class InterfaceSettingsManager:
                                 )
                                 # Save button
                                 if st.button("💾 Save", key=f"save_caption_{idx}"):
-                                    all_captions[idx]["caption"] = new_text
+                                    all_captions[idx][caption_col] = new_text
                                     # Write back to CSV
                                     with open(captions_path, 'w', newline='') as f:
                                         writer = csv.DictWriter(f, fieldnames=all_captions[0].keys())
