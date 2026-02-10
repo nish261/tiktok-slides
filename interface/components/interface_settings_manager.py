@@ -2239,10 +2239,10 @@ class InterfaceSettingsManager:
                     # Clear the apply flag but keep position for display
                     st.session_state.apply_clicked_position = False
                 
-                # TikTok frame toggle
+                # TikTok frame toggle - DEFAULT ON
                 show_tiktok_frame = st.checkbox(
                     "Show TikTok Frame (9:16)",
-                    value=st.session_state.get("show_tiktok_frame", False),
+                    value=st.session_state.get("show_tiktok_frame", True),
                     help="Preview how it looks on TikTok with black bars"
                 )
                 st.session_state.show_tiktok_frame = show_tiktok_frame
@@ -2590,6 +2590,120 @@ class InterfaceSettingsManager:
                         except Exception as e:
                             logger.error(f"Image swap failed: {str(e)}")
                             st.error(f"❌ Swap failed: {str(e)}")
+
+                # Delete Specific Image Section
+                st.markdown("---")
+                st.markdown("**🗑️ Delete Specific Image**")
+
+                # Select folder
+                delete_folder = st.selectbox(
+                    "Select folder",
+                    options=list(self.content_types),
+                    key="delete_img_folder_select"
+                )
+
+                # Get images in selected folder
+                folder_images = self.metadata_data["structure"][delete_folder]["images"]
+
+                if folder_images:
+                    # Dropdown to select image
+                    image_to_delete = st.selectbox(
+                        f"Select image to delete ({len(folder_images)} images)",
+                        options=folder_images,
+                        key="delete_img_select"
+                    )
+
+                    # Show preview of selected image
+                    preview_path = self.base_path / delete_folder / image_to_delete
+                    if preview_path.exists():
+                        st.image(str(preview_path), width=200, caption=image_to_delete)
+
+                    if st.button("🗑️ Delete Image", type="secondary", use_container_width=True, key="delete_single_img_btn"):
+                        try:
+                            import shutil
+                            from datetime import datetime
+
+                            # Move to past_images instead of permanent delete
+                            archive_path = self.base_path / "past_images" / f"deleted_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                            archive_path.mkdir(parents=True, exist_ok=True)
+
+                            img_path = self.base_path / delete_folder / image_to_delete
+                            if img_path.exists():
+                                shutil.move(str(img_path), str(archive_path / image_to_delete))
+
+                            # Remove from metadata
+                            if image_to_delete in self.metadata_data["structure"][delete_folder]["images"]:
+                                self.metadata_data["structure"][delete_folder]["images"].remove(image_to_delete)
+
+                            if image_to_delete in self.metadata_data["images"]:
+                                del self.metadata_data["images"][image_to_delete]
+
+                            self.metadata.save()
+
+                            st.success(f"✅ Deleted '{image_to_delete}' (backed up)")
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"❌ Delete failed: {str(e)}")
+                else:
+                    st.info(f"No images in {delete_folder}")
+
+                # Add Images Section
+                st.markdown("---")
+                st.markdown("**➕ Add Images**")
+
+                add_to_folder = st.selectbox(
+                    "Add to folder",
+                    options=list(self.content_types),
+                    key="add_img_folder_select"
+                )
+
+                uploaded_images = st.file_uploader(
+                    "Upload images",
+                    type=["jpg", "jpeg", "png", "webp"],
+                    accept_multiple_files=True,
+                    key="add_imgs_uploader"
+                )
+
+                if uploaded_images:
+                    st.success(f"✅ {len(uploaded_images)} images ready to add")
+
+                    if st.button(f"➕ Add {len(uploaded_images)} Images", type="primary", use_container_width=True, key="add_imgs_btn"):
+                        try:
+                            from PIL import Image as PILImage
+                            folder_path = self.base_path / add_to_folder
+                            added_count = 0
+
+                            for uploaded_file in uploaded_images:
+                                save_path = folder_path / uploaded_file.name
+
+                                # Save the image
+                                with open(save_path, "wb") as f:
+                                    f.write(uploaded_file.getbuffer())
+
+                                # Add to metadata structure
+                                if uploaded_file.name not in self.metadata_data["structure"][add_to_folder]["images"]:
+                                    self.metadata_data["structure"][add_to_folder]["images"].append(uploaded_file.name)
+
+                                # Add image entry with default settings
+                                if uploaded_file.name not in self.metadata_data["images"]:
+                                    img = PILImage.open(save_path)
+                                    self.metadata_data["images"][uploaded_file.name] = {
+                                        "content_type": add_to_folder,
+                                        "dimensions": {"width": img.size[0], "height": img.size[1]},
+                                        "product": "all",
+                                        "settings_source": "default"
+                                    }
+
+                                added_count += 1
+
+                            self.metadata.save()
+
+                            st.success(f"✅ Added {added_count} images to {add_to_folder}")
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"❌ Add failed: {str(e)}")
 
                 # Caption Editor Section
                 st.divider()
