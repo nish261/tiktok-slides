@@ -871,13 +871,15 @@ class InterfaceSettingsManager:
         with cols[1]:
             font_size = st.number_input(
                 "Font Size",
-                min_value=10,
-                max_value=200,
-                value=text_settings["font_size"],
+                min_value=1.0,
+                max_value=500.0,
+                value=float(text_settings["font_size"]),
+                step=0.5,
+                format="%.1f",
                 key=f"font_size_{text_type}",
             )
 
-            if font_size != text_settings["font_size"]:
+            if font_size != float(text_settings["font_size"]):
                 logger.trace(f"\n=== Font Size Change ===")
                 logger.trace(f"Old size: {text_settings['font_size']}")
                 logger.trace(f"New size: {font_size}")
@@ -899,13 +901,15 @@ class InterfaceSettingsManager:
 
             new_style_value = st.number_input(
                 style_label,
-                min_value=0,
-                max_value=100,
-                value=style_value,
+                min_value=0.0,
+                max_value=100.0,
+                value=float(style_value),
+                step=0.5,
+                format="%.1f",
                 key=f"style_value_{text_type}",
             )
 
-            if new_style_value != style_value:
+            if new_style_value != float(style_value):
                 logger.trace(f"\n=== Style Value Change ===")
                 logger.trace(f"Old value: {style_value}")
                 logger.trace(f"New value: {new_style_value}")
@@ -1855,9 +1859,11 @@ class InterfaceSettingsManager:
                     with col2:
                         extra_font_size = st.number_input(
                             "Font Size",
-                            min_value=10,
-                            max_value=200,
-                            value=50,  # Independent default
+                            min_value=1.0,
+                            max_value=500.0,
+                            value=50.0,  # Independent default
+                            step=0.5,
+                            format="%.1f",
                             key="extra_caption_font_size"
                         )
                         extra_caption_settings["font_size"] = extra_font_size
@@ -1867,9 +1873,11 @@ class InterfaceSettingsManager:
                         style_label = base_text_settings.get("style_type", "outline_width").replace("_", " ").title()
                         extra_style_value = st.number_input(
                             style_label,
-                            min_value=0,
-                            max_value=100,
-                            value=5,  # Independent default
+                            min_value=0.0,
+                            max_value=100.0,
+                            value=5.0,  # Independent default
+                            step=0.5,
+                            format="%.1f",
                             key="extra_caption_style_value"
                         )
                         extra_caption_settings["style_value"] = extra_style_value
