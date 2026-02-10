@@ -117,7 +117,7 @@ with tab1:
             margin_bottom = st.slider("Bottom spacing", 0, 500, 100, key="margin_bottom")
             margin_right = st.slider("Right spacing", 0, 200, 50, key="margin_right")
 
-        if st.button("🔍 Preview Text on Image", type="primary", use_container_width=True):
+        if st.button("🔍 Preview Text on Image", type="primary"):
             with st.spinner("Generating preview..."):
                 try:
                     from text.generate_image import generate_image
@@ -198,7 +198,7 @@ with tab2:
 
     st.markdown("---")
 
-    if st.button("🎬 Generate All Slides", type="primary", use_container_width=True):
+    if st.button("🎬 Generate All Slides", type="primary"):
         with st.spinner(f"Generating {variations} variations..."):
             try:
                 # Load captions
@@ -238,7 +238,7 @@ with tab3:
 
         # Refresh metadata
         st.markdown("**Add new images?** Click refresh after adding files to folders")
-        if st.button("🔄 Refresh & Reload", use_container_width=True):
+        if st.button("🔄 Refresh & Reload"):
             metadata_file = sm.base_path / "metadata.json"
             if metadata_file.exists():
                 metadata_file.unlink()

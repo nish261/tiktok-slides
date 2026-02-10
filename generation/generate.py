@@ -12,6 +12,8 @@ class Generator:
         self.metadata = metadata
         self.captions = captions
         self.default_output_path = self.base_path / "output"
+        # Track cycling index for each content_type
+        self.cycle_indices = {}
 
     def _validate_output_path(
         self, custom_output_path: Optional[Union[Path, str]] = None
@@ -131,6 +133,8 @@ class Generator:
             }
 
         for variation_num in range(1, variations + 1):
+            # Reset cycle indices for each variation
+            self.cycle_indices = {}
 
             variation_path = output_path / f"variation{variation_num}"
             logger.info(f"Processing variation {variation_num}")
@@ -229,12 +233,26 @@ class Generator:
                         f"Processing {content_type} with product {product} and text: {content}"
                     )
 
-                    if not content:  # Skip empty content
-                        logger.debug(f"Skipping empty content for {content_type}")
-                        continue
+                    # Generate and save image (even if content is empty - will use raw image)
+                    if not content:
+                        logger.debug(f"Empty content for {content_type} - using raw image without text")
+                        # Just load the raw image without adding text
+                        content_path = self.base_path / content_type
+                        available_images = self._get_available_images(
+                            content_type, product, used_images, allow_all_duplicates
+                        )
+                        if not available_images:
+                            raise ValueError(f"No available images for {content_type} - {product}")
 
-                    # Generate and save image
-                    if use_set:
+                        # Use cycling to select image
+                        if content_type not in self.cycle_indices:
+                            self.cycle_indices[content_type] = 0
+                        current_index = self.cycle_indices[content_type]
+                        selected_image = available_images[current_index % len(available_images)]
+                        self.cycle_indices[content_type] = (current_index + 1) % len(available_images)
+
+                        image = Image.open(content_path / selected_image)
+                    elif use_set:
                         # Use set image (sequential selection)
                         set_images = set_images_cache.get(content_type, [])
                         if not set_images:
@@ -280,9 +298,11 @@ class Generator:
                     # Apply slight randomization for metadata/hash uniqueness
                     image = self._randomize_image_data(image)
 
-                    # Save image
+                    # Save image with MAXIMUM QUALITY (lossless PNG, no compression)
                     image_path = post_path / f"{idx}.png"
-                    image.save(image_path)
+                    # PNG compression: 0 = no compression (fastest, largest file, best quality)
+                    # We use 1 for minimal compression with zero quality loss
+                    image.save(image_path, format="PNG", compress_level=1, optimize=False)
                     image.close()
                     logger.debug(
                         f"Saved image {idx} for post {post_num} in variation {variation_num}"
@@ -368,8 +388,17 @@ class Generator:
         if not available_images:
             raise ValueError(f"No available images for {content_type} - {product}")
 
-        # Select and track image
-        selected_image = random.choice(available_images)
+        # Initialize cycle index for this content_type if not exists
+        if content_type not in self.cycle_indices:
+            self.cycle_indices[content_type] = 0
+
+        # Select image using cycling (round-robin) instead of random
+        current_index = self.cycle_indices[content_type]
+        selected_image = available_images[current_index % len(available_images)]
+
+        # Increment cycle index for next time
+        self.cycle_indices[content_type] = (current_index + 1) % len(available_images)
+
         if self._should_prevent_duplicates(content_type, product):
             used_images[content_type][product].append(selected_image)
 
@@ -409,38 +438,13 @@ class Generator:
         logger.debug(f"Found images in metadata: {all_images}")
 
         if product == "all":
-            logger.debug("Processing 'all' product case")
-            available = []
+            logger.debug("Processing 'all' product case - returning ALL images in folder")
+            # "all" means use ANY image in this content type, regardless of product assignment
+            available = all_images.copy()
+            logger.debug(f"Using all {len(available)} images from {content_type}")
 
-            content_products = self.metadata.data["products"][content_type]
-
-            for prod_info in content_products:
-                prod_name = prod_info["name"]
-                prevent_duplicates = prod_info["prevent_duplicates"]
-
-                logger.debug(
-                    f"Checking product: {prod_name} (prevent_duplicates={prevent_duplicates})"
-                )
-
-                if prevent_duplicates and not allow_all_duplicates:
-                    logger.debug(f"Skipping {prod_name} due to duplicate prevention")
-                    continue
-
-                matching_images = [
-                    img
-                    for img in all_images
-                    if self.metadata.data["images"][img]["product"] == prod_name
-                ]
-
-                if prevent_duplicates:
-                    matching_images = [
-                        img
-                        for img in matching_images
-                        if img not in used_images[content_type][prod_name]
-                    ]
-
-                logger.debug(f"Adding {len(matching_images)} images from {prod_name}")
-                available.extend(matching_images)
+            # For "all" product, we don't filter by product assignment
+            # This allows cycling through ALL images in the folder
 
         else:
             logger.debug(f"Processing specific product: {product}")

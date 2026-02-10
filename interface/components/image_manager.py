@@ -191,7 +191,7 @@ class ImageManager:
             else:
                 # Normal image display
                 try:
-                    st.image(str(image_path), use_column_width=True)
+                    st.image(str(image_path), use_container_width=True)
                 except TypeError:
                     st.image(str(image_path))
                 
