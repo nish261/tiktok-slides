@@ -2323,6 +2323,73 @@ class InterfaceSettingsManager:
                             logger.error(f"Generation failed: {str(e)}")
                             st.error(f"❌ Generation failed: {str(e)}")
 
+                # Image Swap Section
+                st.divider()
+                st.subheader("🔄 Swap Images")
+                st.caption("Upload new images to replace current ones. Old images are archived to `past_images/`")
+
+                # Select which folder to swap
+                swap_folder = st.selectbox(
+                    "Select folder to swap",
+                    options=list(self.content_types),
+                    key="swap_folder_select"
+                )
+
+                # Show current image count
+                current_count = len(self.metadata_data["structure"][swap_folder]["images"])
+                st.info(f"📁 **{swap_folder}/** currently has **{current_count}** images")
+
+                # File uploader
+                uploaded_files = st.file_uploader(
+                    "Upload new images",
+                    type=["jpg", "jpeg", "png", "webp"],
+                    accept_multiple_files=True,
+                    key="swap_images_uploader"
+                )
+
+                if uploaded_files:
+                    st.success(f"✅ {len(uploaded_files)} images ready to swap")
+
+                    if st.button("🔄 Swap Images Now", type="primary", use_container_width=True):
+                        try:
+                            import shutil
+                            from datetime import datetime
+
+                            folder_path = self.base_path / swap_folder
+                            archive_path = self.base_path / "past_images" / f"{swap_folder}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+
+                            # Create archive folder
+                            archive_path.mkdir(parents=True, exist_ok=True)
+
+                            # Move old images to archive
+                            moved_count = 0
+                            for img_file in folder_path.iterdir():
+                                if img_file.suffix.lower() in [".jpg", ".jpeg", ".png", ".webp"]:
+                                    shutil.move(str(img_file), str(archive_path / img_file.name))
+                                    moved_count += 1
+
+                            # Save new images
+                            saved_count = 0
+                            for uploaded_file in uploaded_files:
+                                save_path = folder_path / uploaded_file.name
+                                with open(save_path, "wb") as f:
+                                    f.write(uploaded_file.getbuffer())
+                                saved_count += 1
+
+                            # Delete metadata to force refresh
+                            metadata_file = self.base_path / "metadata.json"
+                            if metadata_file.exists():
+                                metadata_file.unlink()
+
+                            st.success(f"✅ Swapped! Archived {moved_count} → Added {saved_count} images")
+                            st.info(f"📦 Old images saved to: `past_images/{archive_path.name}/`")
+                            st.warning("⚠️ Reloading to refresh metadata...")
+                            st.rerun()
+
+                        except Exception as e:
+                            logger.error(f"Image swap failed: {str(e)}")
+                            st.error(f"❌ Swap failed: {str(e)}")
+
                 # Show captions if available
                 if captions:
                     st.selectbox(
