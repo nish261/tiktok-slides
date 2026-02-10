@@ -136,7 +136,7 @@ class MetadataGenerator:
                             {
                                 "content_type": content_type,
                                 "dimensions": self._get_image_dimensions(path),
-                                "product": None,  # Initially untagged
+                                "product": "all",  # Default to 'all' so images are ready to use
                                 "settings_source": "default",
                                 "settings": None,  # No custom settings initially
                                 "set_id": set_info["set_id"],
@@ -239,7 +239,7 @@ class MetadataGenerator:
         return {
             "content_type": content_type,
             "dimensions": self._get_image_dimensions(path),
-            "product": None,  # Initially untagged
+            "product": "all",  # Default to 'all' so images are ready to use
             "settings_source": "default",
             "settings": None,
         }
