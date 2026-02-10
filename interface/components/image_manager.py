@@ -190,10 +190,18 @@ class ImageManager:
                         st.rerun()
             else:
                 # Normal image display
-                try:
-                    st.image(str(image_path), use_container_width=True)
-                except TypeError:
-                    st.image(str(image_path))
+                # Verify image exists, fallback to original if preview is missing
+                if not image_path.exists():
+                    logger.warning(f"Image not found at {image_path}, falling back to original")
+                    image_path = self.base_path / st.session_state.content_type / st.session_state.selected_image
+
+                if image_path.exists():
+                    try:
+                        st.image(str(image_path), use_container_width=True)
+                    except TypeError:
+                        st.image(str(image_path))
+                else:
+                    st.warning(f"Image not found: {image_path}")
                 
                 # Show position buttons if library is available and preview exists
                 if HAS_IMAGE_COORDINATES and "preview_image_path" in st.session_state:
