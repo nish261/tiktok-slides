@@ -748,9 +748,31 @@ class InterfaceSettingsManager:
                     # Slide Management Section
                     st.markdown("---")
                     with st.expander("📁 Slide Management", expanded=False):
-                        st.markdown("**Current Slides:**")
-                        for slide in sorted(self.content_types):
-                            st.write(f"• {slide}")
+                        st.markdown("**Current Slides (drag to reorder):**")
+
+                        # Get slides in current order from metadata
+                        slides_order = self.metadata_data.get("content_types", list(self.content_types))
+
+                        for idx, slide in enumerate(slides_order):
+                            col1, col2, col3 = st.columns([0.6, 0.2, 0.2])
+                            with col1:
+                                st.write(f"**{idx + 1}.** {slide}")
+                            with col2:
+                                if idx > 0:
+                                    if st.button("⬆️", key=f"move_up_{slide}", help="Move up"):
+                                        # Swap with previous
+                                        slides_order[idx], slides_order[idx - 1] = slides_order[idx - 1], slides_order[idx]
+                                        self.metadata_data["content_types"] = slides_order
+                                        self.metadata.save()
+                                        st.rerun()
+                            with col3:
+                                if idx < len(slides_order) - 1:
+                                    if st.button("⬇️", key=f"move_down_{slide}", help="Move down"):
+                                        # Swap with next
+                                        slides_order[idx], slides_order[idx + 1] = slides_order[idx + 1], slides_order[idx]
+                                        self.metadata_data["content_types"] = slides_order
+                                        self.metadata.save()
+                                        st.rerun()
 
                         st.markdown("---")
                         st.markdown("**➕ Add New Slide**")
