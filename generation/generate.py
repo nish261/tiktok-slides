@@ -196,9 +196,13 @@ class Generator:
                         # Apply randomization
                         image = self._randomize_image_data(image)
 
-                        # Save image
+                        # Save image with max quality
                         output_path_img = post_path / f"{idx}.png"
-                        image.save(output_path_img)
+                        pnginfo = image.info.get("pnginfo")
+                        if pnginfo:
+                            image.save(output_path_img, format="PNG", compress_level=0, optimize=False, pnginfo=pnginfo)
+                        else:
+                            image.save(output_path_img, format="PNG", compress_level=0, optimize=False)
                         image.close()
                         logger.debug(f"Saved slide {idx} for post {post_num} in variation {variation_num}")
 
@@ -301,8 +305,11 @@ class Generator:
                     # Save image with MAXIMUM QUALITY (lossless PNG, no compression)
                     image_path = post_path / f"{idx}.png"
                     # PNG compression: 0 = no compression (fastest, largest file, best quality)
-                    # We use 1 for minimal compression with zero quality loss
-                    image.save(image_path, format="PNG", compress_level=1, optimize=False)
+                    pnginfo = image.info.get("pnginfo")
+                    if pnginfo:
+                        image.save(image_path, format="PNG", compress_level=0, optimize=False, pnginfo=pnginfo)
+                    else:
+                        image.save(image_path, format="PNG", compress_level=0, optimize=False)
                     image.close()
                     logger.debug(
                         f"Saved image {idx} for post {post_num} in variation {variation_num}"
@@ -316,40 +323,20 @@ class Generator:
         return output_path
 
     def _randomize_image_data(self, image: Image.Image) -> Image.Image:
-        """Apply extremely subtle variations to image to change file hash/metadata while keeping visuals nearly identical"""
+        """Add random metadata to image WITHOUT changing any pixels - preserves original quality 100%"""
+        from PIL import PngImagePlugin
+        import time
 
-        # 1. Extremely Subtle Brightness Adjustment (practically imperceptible)
-        # Reduced range from 0.99-1.01 to 0.998-1.002 for minimal visual impact
-        enhancer = ImageEnhance.Brightness(image)
-        factor = random.uniform(0.998, 1.002)
-        image = enhancer.enhance(factor)
+        # Create metadata dict with random values (changes file hash without touching pixels)
+        metadata = PngImagePlugin.PngInfo()
+        metadata.add_text("timestamp", str(time.time()))
+        metadata.add_text("random_id", str(random.randint(100000, 999999)))
+        metadata.add_text("hash_seed", str(random.random()))
 
-        # 2. Single pixel minimal noise (just for metadata/hash difference)
-        # Only changing by 1 value maximum to keep visual impact near zero
-        if image.mode != 'RGB':
-            image = image.convert('RGB')
+        # Store metadata in image info for saving
+        image.info["pnginfo"] = metadata
 
-        width, height = image.size
-        x = random.randint(0, width - 1)
-        y = random.randint(0, height - 1)
-
-        try:
-            pixel = image.getpixel((x, y))
-            # Handle both integer (L) and tuple (RGB) pixels, though we converted to RGB
-            if isinstance(pixel, tuple):
-                r, g, b = pixel
-                # Only change by +1 or 0 (never -1) to minimize impact
-                r = min(255, r + random.choice([0, 1]))
-                image.putpixel((x, y), (r, g, b))
-            else:
-                # Fallback for safety
-                v = pixel
-                v = min(255, v + random.choice([0, 1]))
-                image.putpixel((x, y), v)
-        except Exception as e:
-            logger.warning(f"Failed to apply pixel noise: {e}")
-
-        return image
+        return image  # Return UNCHANGED image with only metadata added
 
     def _generate_single_image(
         self,
