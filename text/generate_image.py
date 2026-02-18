@@ -6,6 +6,48 @@ from text.plain_text import draw_plain_image  # We'll create this later
 import random
 from config.logging import logger
 
+# TikTok standard dimensions
+TIKTOK_WIDTH = 1080
+TIKTOK_HEIGHT = 1920
+
+
+def fit_to_tiktok_frame(image: Image.Image) -> Image.Image:
+    """Place image inside a 1080x1920 (9:16) TikTok frame, scaled to fit and centered.
+
+    This is called BEFORE text rendering to ensure consistent font sizes.
+    """
+    # Create black background (TikTok's default)
+    frame = Image.new("RGB", (TIKTOK_WIDTH, TIKTOK_HEIGHT), (0, 0, 0))
+
+    # Get original dimensions
+    orig_width, orig_height = image.size
+
+    # Calculate scale to fit within frame while maintaining aspect ratio
+    scale_w = TIKTOK_WIDTH / orig_width
+    scale_h = TIKTOK_HEIGHT / orig_height
+    scale = min(scale_w, scale_h)  # Use smaller scale to fit entirely
+
+    # Calculate new dimensions
+    new_width = int(orig_width * scale)
+    new_height = int(orig_height * scale)
+
+    # Resize image with high quality
+    resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+    # Calculate position to center
+    x = (TIKTOK_WIDTH - new_width) // 2
+    y = (TIKTOK_HEIGHT - new_height) // 2
+
+    # Paste onto frame (handle RGBA)
+    if resized.mode == "RGBA":
+        frame = frame.convert("RGBA")
+        frame.paste(resized, (x, y), resized)
+    else:
+        frame.paste(resized, (x, y))
+
+    resized.close()
+    return frame
+
 
 def scale_for_image(value: int, image_height: int) -> int:
     """Scale a value (like font size) from TikTok reference to actual image size.
@@ -36,20 +78,31 @@ COLOR_PARAM_MAPPING = {
 }
 
 def generate_image(settings: Dict[str, Any], text_type: str, colour_index: int, image_path: str, text: str) -> Image.Image:
-    """Calculate settings and apply text to image"""
+    """Calculate settings and apply text to image.
+
+    IMPORTANT: Image is fit to 9:16 TikTok frame (1080x1920) FIRST,
+    then text is drawn. This ensures consistent font sizes across all images.
+    """
     logger.debug(f"GENERATE // Text type: {text_type}")
     logger.debug(f"GENERATE // Settings for text type: {settings['text_settings'][text_type]}")
-    
+
     if text_type not in VALID_TEXT_TYPES:
         raise ValueError(f"Invalid text type: {text_type}")
     logger.debug(f"GENERATE IMAGE CALLED WITH TEXT: {text}")
-    
+
     # Get common settings
     # font_path access removed as it causes KeyError and is calculated later as resolved_font_path
     text_settings = settings["text_settings"][text_type]
     logger.debug(f"generate image // settings: {settings}")
-    image = Image.open(image_path)
-    width, height = image.size
+
+    # Load original image and fit to 9:16 TikTok frame FIRST
+    # This ensures consistent font sizing regardless of original image dimensions
+    original_image = Image.open(image_path)
+    image = fit_to_tiktok_frame(original_image)
+    original_image.close()
+
+    # Now image is always 1080x1920
+    width, height = image.size  # Will be 1080x1920
     
     # Calculate margins and usable area
     margins = text_settings["margins"]

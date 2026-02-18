@@ -76,12 +76,27 @@ def draw_plain_image(
     # Offset y so text block is centered at the position
     y_start = y_center - (total_text_height // 2)
 
+    # === OVERFLOW PROTECTION ===
+    # Scale margins for bounds checking
+    scaled_margin_top = margins.get("top", 0) * scale
+    scaled_margin_bottom = margins.get("bottom", 0) * scale
+
+    # Calculate safe bounds
+    safe_top = int(scaled_margin_top)
+    safe_bottom = int(scaled_height - scaled_margin_bottom)
+
+    # Clamp y_start to stay within safe bounds
+    if y_start < safe_top:
+        y_start = safe_top
+    if y_start + total_text_height > safe_bottom:
+        y_start = safe_bottom - total_text_height
+
     print(f"PLAIN // Text block: {len(lines)} lines, total height={total_text_height}")
     print(f"PLAIN // Center at y={y_center}, starting at y={y_start}")
 
-    # Scale margins for text layer
-    scaled_margin_left = margins.get("left", 0) * scale
-    scaled_margin_right = margins.get("right", 0) * scale
+    # Scale margins for text layer (use different names to avoid shadowing)
+    text_margin_left = margins.get("left", 0) * scale
+    text_margin_right = margins.get("right", 0) * scale
 
     # Draw each line with emoji support
     for i, line in enumerate(lines):
@@ -95,8 +110,8 @@ def draw_plain_image(
             fill=text_color,
             outline_color=outline_color,
             outline_width=scaled_outline_width,
-            margin_left=int(scaled_margin_left),
-            margin_right=int(scaled_margin_right),
+            margin_left=int(text_margin_left),
+            margin_right=int(text_margin_right),
         )
         print(f"PLAIN // Rendered line {i}: {line[:40]}...")
 

@@ -299,6 +299,11 @@ class Generator:
                             allow_all_duplicates=allow_all_duplicates,
                         )
 
+                    # Note: Image is already fit to 9:16 frame inside generate_image()
+                    # Only fit to frame here for raw images (empty content)
+                    if not content:
+                        image = self._fit_to_tiktok_frame(image)
+
                     # Apply slight randomization for metadata/hash uniqueness
                     image = self._randomize_image_data(image)
 
@@ -321,6 +326,42 @@ class Generator:
 
         # Return the actual output path used for reporting
         return output_path
+
+    def _fit_to_tiktok_frame(self, image: Image.Image) -> Image.Image:
+        """Place image inside a 1080x1920 (9:16) TikTok frame, scaled to fit and centered"""
+        TIKTOK_WIDTH = 1080
+        TIKTOK_HEIGHT = 1920
+
+        # Create black background (TikTok's default)
+        frame = Image.new("RGB", (TIKTOK_WIDTH, TIKTOK_HEIGHT), (0, 0, 0))
+
+        # Get original dimensions
+        orig_width, orig_height = image.size
+
+        # Calculate scale to fit within frame while maintaining aspect ratio
+        scale_w = TIKTOK_WIDTH / orig_width
+        scale_h = TIKTOK_HEIGHT / orig_height
+        scale = min(scale_w, scale_h)  # Use smaller scale to fit entirely
+
+        # Calculate new dimensions
+        new_width = int(orig_width * scale)
+        new_height = int(orig_height * scale)
+
+        # Resize image with high quality
+        resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
+        # Calculate position to center
+        x = (TIKTOK_WIDTH - new_width) // 2
+        y = (TIKTOK_HEIGHT - new_height) // 2
+
+        # Paste onto frame (handle RGBA)
+        if resized.mode == "RGBA":
+            frame.paste(resized, (x, y), resized)
+        else:
+            frame.paste(resized, (x, y))
+
+        resized.close()
+        return frame
 
     def _randomize_image_data(self, image: Image.Image) -> Image.Image:
         """Add random metadata to image WITHOUT changing any pixels - preserves original quality 100%"""
