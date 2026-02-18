@@ -1,9 +1,8 @@
+.venv/
 __pycache__/
 *.pyc
 .DS_Store
-sample_content/output/
-assets/emojis/*.tmp
-streamlit_app_*.log
-streamlit_hello_*.log
-*.ipynb_checkpoints/
-
+output/
+*.log
+.env
+emoji_cache/

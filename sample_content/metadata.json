@@ -1,7 +1,6 @@
 {
   "content_types": [
     "slide1",
-    "slide3",
     "slide2"
   ],
   "products": {
@@ -14,14 +13,6 @@
       }
     ],
     "slide2": [
-      {
-        "name": "all",
-        "prevent_duplicates": false,
-        "current_count": 0,
-        "min_occurrences": 1
-      }
-    ],
-    "slide3": [
       {
         "name": "all",
         "prevent_duplicates": false,
@@ -44,24 +35,31 @@
         "85b9ab36c32bf801e73d6ed1ef84465b.webp",
         "8UJzmAAAAAGSURBVAMAIV40L9g1biEAAAAASUVORK5CYII.webp",
         "94cc08915c0c6a22b05be3f0343a0e96.webp",
+        "CnP_11022026_000124.png",
+        "CnP_11022026_000152.png",
+        "IMG_0358.webp",
+        "IMG_0474.webp",
+        "IMG_1115.webp",
+        "IMG_1116.webp",
         "a48b428608fe3ee13dc7d28961e1c649.webp",
         "c3e042ad8b235c259ba5d9d287cf9d66.webp",
         "e1b6244e931e01ad65f6f36d3d2ad190.webp",
-        "edc89a32cefd7fc6c77e2da025c23e77.webp"
+        "edc89a32cefd7fc6c77e2da025c23e77.webp",
+        "image-1.webp",
+        "image.webp"
       ]
     },
     "slide2": {
       "path": "sample_content/slide2",
       "images": [
+        "078c600216a381bfa48ec15792347356.jpg",
+        "3e4ae798d34af468138bada3af14bf66.jpg",
+        "4f9e2eaa545f1f6c94291ac9f5063a9b.jpg",
+        "6a79ee0cbfe192b64de9d73bc776546a.jpg",
         "94bba09b-ed29-4fbc-8aa3-79e35e22f95f-1768198494.webp",
         "a44f764e-eb72-4f75-a517-ad08dd1af354-1768196756.webp",
-        "c2714830-2c59-46ad-99e6-ec0fc0223acc-1768198676.webp"
-      ]
-    },
-    "slide3": {
-      "path": "sample_content/slide3",
-      "images": [
-        "starter_067dd84b3a06921ff687d523b8dff567.webp"
+        "c2714830-2c59-46ad-99e6-ec0fc0223acc-1768198676.webp",
+        "c7a46269c51eece6704fea34607f4b6c.jpg"
       ]
     }
   },
@@ -73,74 +71,8 @@
         "height": 1308
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 74.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.5647,
-                0.5647
-              ],
-              "horizontal": [
-                0.1183,
-                0.1183
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -151,74 +83,20 @@
         "height": 1308
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "078c600216a381bfa48ec15792347356.jpg": {
+      "content_type": "slide2",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -229,74 +107,8 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -307,74 +119,8 @@
         "height": 1702
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -385,74 +131,20 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "3e4ae798d34af468138bada3af14bf66.jpg": {
+      "content_type": "slide2",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -463,74 +155,20 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "4f9e2eaa545f1f6c94291ac9f5063a9b.jpg": {
+      "content_type": "slide2",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -541,74 +179,20 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "6a79ee0cbfe192b64de9d73bc776546a.jpg": {
+      "content_type": "slide2",
+      "dimensions": {
+        "width": 642,
+        "height": 1200
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -619,74 +203,8 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -697,74 +215,8 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -787,74 +239,80 @@
         "height": 1177
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "CnP_11022026_000124.png": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "CnP_11022026_000152.png": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 720,
+        "height": 1134
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0358.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1175
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_0474.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1129
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_1115.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 985
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "IMG_1116.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 750,
+        "height": 1183
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -877,74 +335,8 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -967,74 +359,20 @@
         "height": 1308
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "c7a46269c51eece6704fea34607f4b6c.jpg": {
+      "content_type": "slide2",
+      "dimensions": {
+        "width": 736,
+        "height": 1308
       },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -1045,74 +383,8 @@
         "height": 700
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
@@ -1123,98 +395,37 @@
         "height": 1308
       },
       "product": "all",
-      "settings_source": "custom",
-      "settings": {
-        "base_settings": {
-          "default_text_type": "plain"
-        },
-        "text_settings": {
-          "plain": {
-            "font_size": 75.0,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "outline_width",
-            "style_value": 5.0,
-            "colors": [
-              {
-                "text": "#FFFFFF",
-                "outline": "#000000"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.6023,
-                0.6023
-              ],
-              "horizontal": [
-                0.1567,
-                0.1567
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.1,
-              "right": 0.1
-            }
-          },
-          "highlight": {
-            "font_size": 70,
-            "font": "assets.fonts.tiktokfont.ttf",
-            "style_type": "corner_radius",
-            "style_value": 20,
-            "colors": [
-              {
-                "text": "#000000",
-                "background": "#FFFFFF"
-              }
-            ],
-            "position": {
-              "vertical": [
-                0.45,
-                0.55
-              ],
-              "horizontal": [
-                0.45,
-                0.55
-              ],
-              "vertical_jitter": 0.01,
-              "horizontal_jitter": 0.02
-            },
-            "margins": {
-              "top": 0.05,
-              "bottom": 0.05,
-              "left": 0.05,
-              "right": 0.05
-            }
-          }
-        }
-      },
+      "settings_source": "default",
+      "settings": null,
       "set_id": null,
       "set_index": null
     },
-    "starter_067dd84b3a06921ff687d523b8dff567.webp": {
-      "content_type": "slide3",
+    "image-1.webp": {
+      "content_type": "slide1",
       "dimensions": {
-        "width": 736,
-        "height": 1308
+        "width": 726,
+        "height": 1222
       },
       "product": "all",
-      "settings_source": "default"
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
+    },
+    "image.webp": {
+      "content_type": "slide1",
+      "dimensions": {
+        "width": 598,
+        "height": 1088
+      },
+      "product": "all",
+      "settings_source": "default",
+      "settings": null,
+      "set_id": null,
+      "set_index": null
     }
   },
-  "sets": {
-    "example_set": {
-      "path": "sample_content/sets/example_set",
-      "images": [
-        "1.webp",
-        "2.webp",
-        "3.webp"
-      ],
-      "count": 3
-    }
-  },
+  "sets": {},
   "untagged": [],
   "settings": {
     "slide1": {
